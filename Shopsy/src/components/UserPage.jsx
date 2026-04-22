@@ -2,6 +2,15 @@ import React, { useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { Search, User, Mail, Phone, Shield, Calendar, X, Eye, Edit2, Trash2, Check, AlertTriangle, Plus } from 'lucide-react';
 import Pagination from './Pagination';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Paper 
+} from '@mui/material';
 
 const UserPage = () => {
   const { registeredUsers, fetchUsersPage, updateUser, deleteUser, registerUser } = useData();
@@ -89,17 +98,29 @@ const UserPage = () => {
   };
 
   const handleSaveEdit = async () => {
-    if (!editForm.name.trim() || !editForm.email.trim()) return;
+    if (!editForm.name.trim() || !editForm.email.trim()) {
+      alert('Name and Email are required.');
+      return;
+    }
+    if (!viewingUser?.id) {
+      alert('Error: User ID is missing. Cannot update.');
+      return;
+    }
     setEditLoading(true);
     try {
-      await updateUser(viewingUser.id, editForm);
-      // Update the viewing user with new data
-      setViewingUser(prev => ({ ...prev, ...editForm }));
-      setIsEditing(false);
-      setSuccessMsg('User updated successfully!');
-      setTimeout(() => setSuccessMsg(''), 2500);
+      const success = await updateUser(viewingUser.id, editForm);
+      if (success) {
+        // Update the viewing user with new data
+        setViewingUser(prev => ({ ...prev, ...editForm }));
+        setIsEditing(false);
+        setSuccessMsg('User updated successfully!');
+        setTimeout(() => setSuccessMsg(''), 2500);
+      } else {
+        alert('Failed to update user. Please try again.');
+      }
     } catch (err) {
       console.error('Failed to update user:', err);
+      alert('An error occurred while saving changes.');
     } finally {
       setEditLoading(false);
     }
@@ -165,26 +186,36 @@ const UserPage = () => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-10 pr-4 py-2 bg-gray-900 border border-gray-900 text-gray-400 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-blue-900 text-sm"
+              className="pl-10 pr-4 py-2 bg-white border border-gray-200 text-gray-900 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm shadow-sm"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="text-gray-400 text-xs uppercase tracking-wider">
-                <th className="px-6 py-4 font-semibold">User Details</th>
-                <th className="px-6 py-4 font-semibold">Contact Info</th>
-                <th className="px-6 py-4 font-semibold text-center">Role</th>
-                <th className="px-6 py-4 font-semibold">Registered At</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm divide-y divide-gray-50">
+        <TableContainer component={Paper} elevation={0} sx={{ background: 'transparent', border: 'none', borderRadius: 0 }}>
+          <Table sx={{ minWidth: 650 }} aria-label="users table">
+            <TableHead>
+              <TableRow sx={{ '& th': { borderBottom: '1px solid rgb(249, 250, 251)', py: 2, px: 3 } }}>
+                <TableCell sx={{ color: 'rgb(156, 163, 175)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>User Details</TableCell>
+                <TableCell sx={{ color: 'rgb(156, 163, 175)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Info</TableCell>
+                <TableCell align="center" sx={{ color: 'rgb(156, 163, 175)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Role</TableCell>
+                <TableCell sx={{ color: 'rgb(156, 163, 175)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Registered At</TableCell>
+                <TableCell align="right" sx={{ color: 'rgb(156, 163, 175)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((user) => (
-                <tr key={user.id} className="hover:bg-blue-50/30 transition-all group cursor-pointer" onClick={() => openViewModal(user)}>
-                  <td className="px-6 py-4">
+                <TableRow 
+                  key={user.id} 
+                  hover
+                  onClick={() => openViewModal(user)}
+                  sx={{ 
+                    cursor: 'pointer',
+                    '&:hover': { backgroundColor: 'rgba(239, 246, 255, 0.3) !important' },
+                    transition: 'all 0.2s',
+                    '& td': { borderBottom: '1px solid rgb(249, 250, 251)', py: 2, px: 3 }
+                  }}
+                >
+                  <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm uppercase">
                         {(user.name || user.username || 'U').charAt(0)}
@@ -194,8 +225,8 @@ const UserPage = () => {
                         <span className="text-xs text-gray-400">@{user.username || 'n/a'}</span>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2 text-gray-600">
                         <Mail className="w-3.5 h-3.5 text-gray-400" />
@@ -206,18 +237,19 @@ const UserPage = () => {
                         <span>{user.phone || 'N/A'}</span>
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
+                  </TableCell>
+                  <TableCell align="center">
                     <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-widest border border-blue-100">
                       {user.role || 'user'}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500 font-medium">
+                  </TableCell>
+                  <TableCell className="text-gray-500 font-medium">
                     {user.registeredAt ? new Date(user.registeredAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-right">
+                  </TableCell>
+                  <TableCell align="right">
                     <div className="flex items-center justify-end gap-1">
                       <button
+                        type="button"
                         onClick={(e) => { e.stopPropagation(); openViewModal(user); }}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                         title="View"
@@ -225,6 +257,7 @@ const UserPage = () => {
                         <Eye className="w-4 h-4" />
                       </button>
                       <button
+                        type="button"
                         onClick={(e) => { e.stopPropagation(); openViewModal(user); setTimeout(() => setIsEditing(true), 100); }}
                         className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
                         title="Edit"
@@ -232,6 +265,7 @@ const UserPage = () => {
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
+                        type="button"
                         onClick={(e) => { e.stopPropagation(); openViewModal(user); setTimeout(() => setShowDeleteConfirm(true), 100); }}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                         title="Delete"
@@ -239,19 +273,19 @@ const UserPage = () => {
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
               {filteredUsers.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="px-6 py-10 text-center text-gray-400 italic">
+                <TableRow>
+                  <TableCell colSpan={5} align="center" sx={{ py: 10, color: 'rgb(156, 163, 175)', fontStyle: 'italic', border: 'none' }}>
                     No users found matching your search.
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
-        </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
         <Pagination
           currentPage={currentPage}
           totalItems={filteredUsers.length}
@@ -441,6 +475,7 @@ const UserPage = () => {
                   /* Edit mode buttons */
                   <div className="flex gap-2">
                     <button
+                      type="button"
                       onClick={handleSaveEdit}
                       disabled={editLoading || !editForm.name.trim() || !editForm.email.trim()}
                       className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 text-sm disabled:opacity-60 disabled:cursor-not-allowed"
@@ -449,6 +484,7 @@ const UserPage = () => {
                       {editLoading ? 'Saving...' : 'Save Changes'}
                     </button>
                     <button
+                      type="button"
                       onClick={handleCancelEdit}
                       className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition-all active:scale-95 text-sm"
                     >

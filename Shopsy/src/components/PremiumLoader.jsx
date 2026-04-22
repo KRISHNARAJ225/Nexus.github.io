@@ -62,6 +62,103 @@ const ShimmerBlock = ({ width = '100%', height = '16px', borderRadius = '8px', s
   />
 );
 
+// ───────────── Rocket Loader (Premium Launch Animation) ─────────────
+const RocketLoader = ({ accentColor = '#6366f1' }) => (
+  <div style={{
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: '#0a0a0a',
+    gap: '32px',
+    fontFamily: "'Inter', sans-serif",
+    position: 'fixed',
+    inset: 0,
+    zIndex: 9999,
+    overflow: 'hidden'
+  }}>
+    <style>{`
+      @keyframes rocket-launch {
+        0% { transform: translateY(0) rotate(0deg); }
+        20% { transform: translateY(5px) rotate(-1deg); }
+        100% { transform: translateY(-100vh) rotate(0deg); }
+      }
+      @keyframes flame-pulse {
+        0%, 100% { transform: scaleY(1); opacity: 0.8; }
+        50% { transform: scaleY(1.3); opacity: 1; }
+      }
+      @keyframes star-twinkle {
+        0%, 100% { opacity: 0.2; transform: scale(0.8); }
+        50% { opacity: 0.8; transform: scale(1.2); }
+      }
+      .star {
+        position: absolute;
+        background: white;
+        border-radius: 50%;
+        animation: star-twinkle 2s infinite;
+      }
+    `}</style>
+    
+    {/* Background Stars */}
+    {[...Array(40)].map((_, i) => (
+      <div 
+        key={i} 
+        className="star" 
+        style={{
+          width: Math.random() * 3 + 'px',
+          height: Math.random() * 3 + 'px',
+          left: Math.random() * 100 + '%',
+          top: Math.random() * 100 + '%',
+          animationDelay: Math.random() * 2 + 's'
+        }}
+      />
+    ))}
+
+    <div style={{ position: 'relative', animation: 'rocket-launch 2.5s cubic-bezier(0.85, 0, 0.15, 1) forwards' }}>
+      {/* Rocket Body */}
+      <div style={{ fontSize: '80px', filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))' }}>🚀</div>
+      {/* Flame */}
+      <div style={{
+        position: 'absolute',
+        bottom: '-10px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '20px',
+        height: '40px',
+        background: 'linear-gradient(to bottom, #ff9d00, #ff4e00, transparent)',
+        borderRadius: '50%',
+        filter: 'blur(4px)',
+        animation: 'flame-pulse 0.1s infinite alternate',
+        zIndex: -1
+      }} />
+    </div>
+
+    <div style={{ textAlign: 'center', zIndex: 10 }}>
+      <h3 style={{ 
+        fontSize: '18px', 
+        fontWeight: '900', 
+        color: '#ffffff', 
+        letterSpacing: '0.2em',
+        margin: '0 0 8px 0',
+        textTransform: 'uppercase'
+      }}>
+        Launching Dashboard
+      </h3>
+      <p style={{ 
+        fontSize: '12px', 
+        color: '#64748b', 
+        fontWeight: '600',
+        margin: 0,
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em'
+      }}>
+        Preparing premium environment
+      </p>
+    </div>
+  </div>
+);
+
 // ───────────── Full Page Loader (Premium Spinning Wheel) ─────────────
 const FullPageLoader = ({ accentColor = '#1b2559' }) => (
   <div style={{
@@ -341,6 +438,8 @@ const PremiumLoader = ({ variant = 'fullpage', accentColor, ...props }) => {
       return <ReceiptLoader {...props} />;
     case 'inline':
       return <InlineLoader {...props} />;
+    case 'rocket':
+      return <RocketLoader accentColor={accentColor} {...props} />;
     default:
       return <FullPageLoader accentColor={accentColor} {...props} />;
   }

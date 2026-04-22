@@ -131,6 +131,21 @@ export const DataProvider = ({ children }) => {
     };
   };
 
+  // Normalize user fields
+  const normalizeUser = (u) => {
+    if (!u) return u;
+    return {
+      ...u,
+      id:           u.id ?? u.userId ?? u.user_id ?? u._id ?? `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name:         u.name || u.username || u.fullName || 'Unknown User',
+      username:     u.username || '',
+      email:        u.email || '',
+      phone:        u.phone || '',
+      role:         (u.role || 'user').toLowerCase(),
+      registeredAt: u.registeredAt || u.createdAt || u.created_at || new Date().toISOString(),
+    };
+  };
+
   // Paginated states for list pages
   const [customerPageData, setCustomerPageData] = useState({ content: [], totalElements: 0, totalPages: 0, number: 0 });
   const [categoryPageData, setCategoryPageData] = useState({ content: [], totalElements: 0, totalPages: 0, number: 0 });
@@ -178,11 +193,11 @@ export const DataProvider = ({ children }) => {
     try {
       const d = await apiGetUsers(page, size, search, { signal });
       const arr = Array.isArray(d) ? d : (d?.content || []);
-      setRegisteredUsers(arr);
+      setRegisteredUsers(arr.map(normalizeUser));
     } catch (err) { 
       if (err.name !== 'AbortError') {
         const savedUsers = localStorage.getItem('registeredUsers');
-        if (savedUsers) setRegisteredUsers(JSON.parse(savedUsers));
+        if (savedUsers) setRegisteredUsers(JSON.parse(savedUsers).map(normalizeUser));
       }
     }
   }, []);
@@ -592,20 +607,17 @@ export const DataProvider = ({ children }) => {
   const registerUser = async (userData) => {
     try {
       const result = await apiRegisterUser(userData);
-      const n = {
-        id: result?.id ?? result?.data?.id ?? Date.now(),
-        name: userData.name,
-        username: userData.username || '',
-        email: userData.email,
-        phone: userData.phone || '',
-        role: result?.role || result?.data?.role || 'user',
+      const userObj = result?.data || result || {};
+      const n = normalizeUser({
+        ...userObj,
+        ...userData,
         registeredAt: new Date().toISOString(),
-      };
+      });
       setRegisteredUsers(prev => { const u = [...prev, n]; localStorage.setItem('registeredUsers', JSON.stringify(u)); return u; });
       addNotification(`New user '${n.name}' registered`);
       return n;
     } catch {
-      const n = { id: Date.now(), name: userData.name, username: userData.username || '', email: userData.email, phone: userData.phone || '', role: 'user', registeredAt: new Date().toISOString() };
+      const n = normalizeUser({ ...userData, registeredAt: new Date().toISOString() });
       setRegisteredUsers(prev => { const u = [...prev, n]; localStorage.setItem('registeredUsers', JSON.stringify(u)); return u; });
       addNotification(`New user '${n.name}' registered`);
       return n;

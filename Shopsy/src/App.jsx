@@ -29,6 +29,7 @@ const AppContent = () => {
   });
   const [validating, setValidating] = useState(true);
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('accentColor') || '#1b2559');
+  const [isLaunching, setIsLaunching] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(() => parseInt(localStorage.getItem('zoomLevel') || '100', 10));
 
   const handleSettingsChange = ({ accentColor: c, zoomLevel: z }) => {
@@ -58,6 +59,7 @@ const AppContent = () => {
   }, []);
 
   const handleLogin = (apiResponse) => {
+    setIsLaunching(true);
     const data = apiResponse?.data;
     const token = data?.token;
     const user = {
@@ -66,9 +68,14 @@ const AppContent = () => {
       email: data?.email || '',
       role: data?.role || 'user',
     };
-    if (token) setAuthToken(token);
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    setCurrentUser(user);
+    
+    // Simulate premium launch
+    setTimeout(() => {
+      if (token) setAuthToken(token);
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      setCurrentUser(user);
+      setIsLaunching(false);
+    }, 2800); // 2.8s for rocket launch
   };
 
   const handleLogout = async () => {
@@ -85,7 +92,11 @@ const AppContent = () => {
     return path || 'dashboard';
   };
 
-  const isAdmin = currentUser?.name?.toLowerCase() === 'meera' || currentUser?.role?.toLowerCase() === 'admin';
+  const isAdmin = ['madhu', 'krishh'].includes(currentUser?.name?.toLowerCase()) || currentUser?.role?.toLowerCase() === 'admin';
+
+  if (isLaunching) {
+    return <PremiumLoader variant="rocket" />;
+  }
 
   // Show premium loader during token validation (skip for receipt pages)
   if (validating && !location.pathname.startsWith('/receipt/')) {
@@ -107,10 +118,11 @@ const AppContent = () => {
         ) : (
           <div className="App">
             <Layout
-              currentUser={currentUser}
               activePage={getCurrentPage()}
               navigate={navigate}
               onLogout={handleLogout}
+              currentUser={currentUser}
+              onUserUpdate={(updatedUser) => setCurrentUser(updatedUser)}
               accentColor={accentColor}
               zoomLevel={zoomLevel}
             >

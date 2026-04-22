@@ -22,6 +22,7 @@ const LoginPage = ({ onLogin }) => {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotMsg, setForgotMsg] = useState({ type: '', text: '' });
+  const [showRegSuccess, setShowRegSuccess] = useState(false);
 
   const handleGoogleSuccess = (credentialResponse) => {
     setGoogleLoading(true);
@@ -37,13 +38,15 @@ const LoginPage = ({ onLogin }) => {
       };
       // For Google Login, we typically get the token and user info
       // If your backend needs to verify the token, do it here
-      onLogin({ data: { 
-        id: decoded.sub, // Added unique Google subject ID
-        token: credentialResponse.credential, 
-        username: decoded.name, 
-        email: decoded.email, 
-        role: 'user' 
-      }});
+      onLogin({
+        data: {
+          id: decoded.sub, // Added unique Google subject ID
+          token: credentialResponse.credential,
+          username: decoded.name,
+          email: decoded.email,
+          role: 'user'
+        }
+      });
     } catch (err) {
       console.error('Google decode error:', err);
       setError('Failed to authenticate with Google.');
@@ -64,13 +67,8 @@ const LoginPage = ({ onLogin }) => {
       if (isRegistering) {
         if (email && password && name && regUsername) {
           await registerUser({ name, username: regUsername, email, phone, password });
-          setIsRegistering(false);
-          setPassword('');
-          setRegUsername('');
-          setName('');
-          setPhone('');
           setEmail('');
-          alert('Account created successfully! Please sign in.');
+          setShowRegSuccess(true);
         }
       } else {
         if (username && password) {
@@ -118,7 +116,7 @@ const LoginPage = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center p-4 font-sans">
+    <div className="min-h-screen bg-[#f0f4f8] flex items-center justify-center p-4 font-sans text-gray-900">
       <div className="bg-white rounded-[24px] shadow-2xl w-full max-w-5xl flex overflow-hidden min-h-[600px]">
         {/* Left Side: Illustration */}
         <div className="hidden md:block w-1/2 relative bg-white p-2">
@@ -133,7 +131,7 @@ const LoginPage = ({ onLogin }) => {
             {/* Logo */}
             <div className="flex flex-col items-center mb-8">
               <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center mb-2 shadow-sm border border-gray-100">
-                <img src="/icons.svg" alt="Logo" className="w-6 h-6" onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
+                <img src="/icons.svg" alt="Logo" className="w-6 h-6" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
                 <div className="w-6 h-6 bg-black rounded-lg hidden items-center justify-center transform rotate-45">
                   <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
                 </div>
@@ -141,7 +139,7 @@ const LoginPage = ({ onLogin }) => {
             </div>
 
             <div className="text-center mb-6">
-              <h1 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">
+              <h1 className="text-2xl font-black text-gray-900 mb-2 tracking-tight uppercase">
                 {isRegistering ? "CREATE ACCOUNT" : "WELCOME BACK"}
               </h1>
               <p className="text-gray-400 text-xs font-medium">
@@ -153,7 +151,7 @@ const LoginPage = ({ onLogin }) => {
               {isRegistering && (
                 <>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 ml-1">Full Name</label>
+                    <label className="text-xs font-bold text-gray-700 ml-1 uppercase tracking-wider">Full Name</label>
                     <input
                       type="text"
                       value={name}
@@ -164,7 +162,7 @@ const LoginPage = ({ onLogin }) => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 ml-1">Username</label>
+                    <label className="text-xs font-bold text-gray-700 ml-1 uppercase tracking-wider">Username</label>
                     <input
                       type="text"
                       value={regUsername}
@@ -175,7 +173,7 @@ const LoginPage = ({ onLogin }) => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 ml-1">Phone Number (Optional)</label>
+                    <label className="text-xs font-bold text-gray-700 ml-1 uppercase tracking-wider">Phone Number</label>
                     <input
                       type="tel"
                       value={phone}
@@ -189,7 +187,7 @@ const LoginPage = ({ onLogin }) => {
 
               {isRegistering ? (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-700 ml-1">Email</label>
+                  <label className="text-xs font-bold text-gray-700 ml-1 uppercase tracking-wider">Email Address</label>
                   <input
                     type="email"
                     value={email}
@@ -201,7 +199,7 @@ const LoginPage = ({ onLogin }) => {
                 </div>
               ) : (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-700 ml-1">Username</label>
+                  <label className="text-xs font-bold text-gray-700 ml-1 uppercase tracking-wider">Username</label>
                   <input
                     type="text"
                     value={username}
@@ -214,7 +212,7 @@ const LoginPage = ({ onLogin }) => {
               )}
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-700 ml-1">Password</label>
+                <label className="text-xs font-bold text-gray-700 ml-1 uppercase tracking-wider">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -248,12 +246,12 @@ const LoginPage = ({ onLogin }) => {
                     </div>
                     <span className="text-xs font-bold text-gray-500 group-hover:text-gray-800 transition-colors">Remember me</span>
                   </label>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowForgotPwd(true)} 
-                    className="text-xs font-bold text-gray-900 hover:underline transition-colors cursor-pointer"
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPwd(true)}
+                    className="text-xs font-bold text-gray-900 hover:underline underline-offset-4 transition-colors cursor-pointer"
                   >
-                    Forgot Password
+                    Forgot Password?
                   </button>
                 </div>
               )}
@@ -262,11 +260,11 @@ const LoginPage = ({ onLogin }) => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#0a0a0a] text-white py-3.5 rounded-xl font-bold text-sm hover:bg-black transform active:scale-[0.98] transition-all shadow-md shadow-black/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full bg-[#0a0a0a] text-white py-4 rounded-xl font-bold text-sm hover:bg-black transform active:scale-[0.98] transition-all shadow-md shadow-black/10 disabled:opacity-60 disabled:cursor-not-allowed uppercase tracking-widest"
                 >
-                  {loading ? 'Please wait...' : isRegistering ? 'Create Account' : 'Sign In'}
+                  {loading ? 'Processing...' : isRegistering ? 'Create Account' : 'Sign In'}
                 </button>
-                
+
                 {/* Divider */}
                 <div className="flex items-center gap-3 py-1">
                   <div className="flex-1 h-px bg-gray-200"></div>
@@ -290,8 +288,8 @@ const LoginPage = ({ onLogin }) => {
 
             {/* ERROR MODAL OVERLAY */}
             {error && (
-              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
-                <div className="bg-white max-w-sm w-full rounded-2xl shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200">
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-white max-w-sm w-full rounded-2xl shadow-2xl overflow-hidden relative border border-gray-100">
                   <div className="h-1.5 w-full bg-red-500"></div>
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -299,18 +297,18 @@ const LoginPage = ({ onLogin }) => {
                         <div className="bg-red-100 p-2 rounded-full">
                           <XCircle className="w-6 h-6 text-red-600" />
                         </div>
-                        <h3 className="font-bold text-gray-900 text-lg">Authentication Error</h3>
+                        <h3 className="font-bold text-gray-900 text-lg tracking-tight">Authentication Error</h3>
                       </div>
                       <button onClick={() => setError('')} className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100">
                         <X className="w-5 h-5" />
                       </button>
                     </div>
-                    <p className="text-gray-600 text-sm font-medium leading-relaxed pl-1">
+                    <p className="text-gray-600 text-sm font-medium leading-relaxed mb-6">
                       {error}
                     </p>
-                    <button 
+                    <button
                       onClick={() => setError('')}
-                      className="mt-6 w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl transition-colors"
+                      className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl transition-colors uppercase text-xs tracking-widest"
                     >
                       Dismiss
                     </button>
@@ -321,8 +319,8 @@ const LoginPage = ({ onLogin }) => {
 
             {/* FORGOT PASSWORD MODAL */}
             {showForgotPwd && (
-              <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-                <div className="bg-white max-w-sm w-full rounded-[32px] shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-300 border border-gray-100">
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+                <div className="bg-white max-w-sm w-full rounded-[32px] shadow-2xl overflow-hidden relative border border-gray-100">
                   <div className="h-2 w-full bg-gradient-to-r from-[#1b2559] via-[#2563eb] to-[#1b2559]"></div>
                   <div className="p-10">
                     <div className="flex items-center justify-between mb-8">
@@ -334,50 +332,38 @@ const LoginPage = ({ onLogin }) => {
                         <X className="w-5 h-5" />
                       </button>
                     </div>
-                    
+
                     <p className="text-gray-500 text-xs font-bold mb-8 leading-relaxed">
-                      Lost your keys? Enter your registered email address and we'll transmit a secure reset link to your inbox.
+                      Enter your email address and we'll send you a secure link to reset your password.
                     </p>
 
                     <form onSubmit={handleForgotPassword} className="space-y-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Account Email</label>
-                        <div className="relative group">
-                          <input
-                            type="email"
-                            value={forgotEmail}
-                            onChange={(e) => setForgotEmail(e.target.value)}
-                            className="w-full pl-4 pr-4 py-4 bg-[#f8fafc] border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/10 focus:bg-white focus:border-blue-600/30 transition-all text-sm font-bold text-gray-800"
-                            placeholder="name@example.com"
-                            required
-                          />
-                        </div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                        <input
+                          type="email"
+                          value={forgotEmail}
+                          onChange={(e) => setForgotEmail(e.target.value)}
+                          className="w-full px-4 py-4 bg-[#f8fafc] border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-600/10 focus:bg-white focus:border-blue-600/30 transition-all text-sm font-bold text-gray-800"
+                          placeholder="name@example.com"
+                          required
+                        />
                       </div>
 
                       {forgotMsg.text && (
-                        <div className={`p-4 rounded-2xl flex items-center justify-center gap-2 animate-in slide-in-from-top-2 duration-300 ${forgotMsg.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'}`}>
-                          <p className="text-xs font-black text-center">
-                            {forgotMsg.text}
-                          </p>
+                        <div className={`p-4 rounded-2xl text-center text-xs font-black ${forgotMsg.type === 'success' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-red-50 text-red-500 border border-red-100'}`}>
+                          {forgotMsg.text}
                         </div>
                       )}
 
                       <button
                         type="submit"
                         disabled={forgotLoading}
-                        className="w-full bg-[#1b2559] text-white py-4 rounded-2xl font-black text-sm hover:bg-black transform active:scale-[0.98] transition-all shadow-xl shadow-blue-900/10 disabled:opacity-60 flex items-center justify-center gap-2"
+                        className="w-full bg-[#1b2559] text-white py-4 rounded-2xl font-black text-sm hover:bg-black transform active:scale-[0.98] transition-all shadow-xl shadow-blue-900/10 disabled:opacity-60 flex items-center justify-center gap-2 uppercase tracking-widest"
                       >
                         {forgotLoading ? (
-                           <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        ) : 'Transmit Reset Link'}
-                      </button>
-                      
-                      <button
-                        type="button"
-                        onClick={() => setShowForgotPwd(false)}
-                        className="w-full py-2 text-gray-400 hover:text-gray-900 font-bold text-xs transition-colors mt-2"
-                      >
-                        Return to sign in
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        ) : 'Send Reset Link'}
                       </button>
                     </form>
                   </div>
@@ -387,11 +373,11 @@ const LoginPage = ({ onLogin }) => {
 
             <div className="mt-8 text-center">
               <p className="text-xs text-gray-500 font-bold">
-                {isRegistering ? "Already have an account?" : "Don't have an account?"} 
-                <button 
-                  type="button" 
-                  onClick={() => setIsRegistering(!isRegistering)} 
-                  className="text-black hover:underline underline-offset-4 ml-1"
+                {isRegistering ? "Already have an account?" : "Don't have an account?"}
+                <button
+                  type="button"
+                  onClick={() => setIsRegistering(!isRegistering)}
+                  className="text-black hover:underline underline-offset-4 ml-1 font-black"
                 >
                   {isRegistering ? "Sign in" : "Sign up"}
                 </button>
@@ -399,6 +385,69 @@ const LoginPage = ({ onLogin }) => {
             </div>
           </div>
         </div>
+        {/* REGISTRATION SUCCESS MODAL */}
+        {showRegSuccess && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
+            <div className="absolute inset-0 bg-white/40 backdrop-blur-xl animate-in fade-in duration-700"></div>
+
+            <div className="absolute inset-0 pointer-events-none">
+              {[...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute text-2xl animate-falling"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `-${Math.random() * 20}%`,
+                    animationDelay: `${Math.random() * 5}s`,
+                    animationDuration: `${3 + Math.random() * 4}s`,
+                    opacity: 0.6
+                  }}
+                >
+                  {['🌸', '🍃', '🌼', '🌿', '🌺'][Math.floor(Math.random() * 5)]}
+                </div>
+              ))}
+            </div>
+
+            <div className="relative bg-white rounded-[40px] shadow-2xl border border-emerald-100 p-12 max-w-sm w-full text-center animate-in zoom-in-95 duration-500">
+              <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-8 relative">
+                <div className="absolute inset-0 bg-emerald-200 rounded-full animate-ping opacity-20"></div>
+                <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+
+              <h2 className="text-3xl font-black text-gray-900 mb-4 tracking-tight uppercase">Success!</h2>
+              <p className="text-gray-500 font-bold text-sm leading-relaxed mb-10 px-4">
+                Your account has been successfully created. You can now sign in to your dashboard.
+              </p>
+
+              <button
+                onClick={() => {
+                  setShowRegSuccess(false);
+                  setIsRegistering(false);
+                }}
+                className="w-full bg-[#0a0a0a] text-white py-5 rounded-2xl font-black text-sm hover:bg-black transform active:scale-[0.95] transition-all shadow-xl shadow-black/10 uppercase tracking-widest"
+              >
+                Start Now
+              </button>
+            </div>
+
+            <style dangerouslySetInnerHTML={{
+              __html: `
+              @keyframes falling {
+                0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+                10% { opacity: 0.8; }
+                90% { opacity: 0.8; }
+                100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+              }
+              .animate-falling {
+                animation: falling linear infinite;
+              }
+            ` }} />
+          </div>
+        )}
       </div>
     </div>
   );

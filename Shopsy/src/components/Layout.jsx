@@ -33,9 +33,9 @@ import {
 } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import { changePassword } from '../Service.js/AuthService';
-import { updateUser } from '../Service.js/UserService';
+// import { updateUser } from '../Service.js/UserService'; // Removed redundant import to use context version
 
-const Layout = ({ children, activePage, navigate, onLogout, currentUser, accentColor = '#1b2559', zoomLevel = 100 }) => {
+const Layout = ({ children, activePage, navigate, onLogout, currentUser, onUserUpdate, accentColor = '#1b2559', zoomLevel = 100 }) => {
   const [darkMode, setDarkMode] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -57,16 +57,26 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, accentC
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({ name: '', phone: '', email: '', username: '' });
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
 
-  const { products, customers, notifications, token, addNotification } = useData();
+  const { products, customers, notifications, token, addNotification, registeredUsers, fetchUsersPage, updateUser } = useData();
 
   useEffect(() => {
     if (notifications?.length > 0) {
       setToast(notifications[0]);
-      const timer = setTimeout(() => setToast(null), 3000);
+      const timer = setTimeout(() => setToast(null), 10000); // 10s timeout as requested
       return () => clearTimeout(timer);
     }
   }, [notifications]);
+
+  // Close notifications after 10s
+  useEffect(() => {
+    let timer;
+    if (showNotifications) {
+      timer = setTimeout(() => setShowNotifications(false), 10000);
+    }
+    return () => clearTimeout(timer);
+  }, [showNotifications]);
 
   // Close profile menu on outside click
   useEffect(() => {
@@ -111,7 +121,6 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, accentC
       setPwdSuccess(true);
       addNotification('Password changed successfully');
       setTimeout(() => {
-        setShowChangePwd(false);
         setPwdForm({ current: '', next: '', confirm: '' });
         setPwdSuccess(false);
       }, 1800);
@@ -124,28 +133,44 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, accentC
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    if (!currentUser?.id) {
-      addNotification('Error: User ID not found. Please re-login.');
+
+    // Try to resolve user ID from multiple sources
+    if (!userId) {
+      // Robust resolution: check registeredUsers carefully
+      const matched = registeredUsers?.find(u =>
+        String(u.id) === String(currentUser?.id) ||
+        (u.email && u.email?.toLowerCase() === currentUser?.email?.toLowerCase()) ||
+        (u.username && u.username?.toLowerCase() === currentUser?.name?.toLowerCase()) ||
+        (u.name && u.name?.toLowerCase() === currentUser?.name?.toLowerCase())
+      );
+      userId = matched?.id;
+    }
+
+    if (!userId) {
+      // One last try: if there's only one user and we are logged in, maybe that's us?
+      if (registeredUsers?.length === 1) {
+         userId = registeredUsers[0].id;
+      }
+    }
+
+    if (!userId) {
+      addNotification('Error: User ID not found. Please refresh or contact admin.');
+      setUpdateLoading(false);
       return;
     }
+
     setUpdateLoading(true);
     try {
-      await updateUser(currentUser.id, profileForm);
-      const updatedUser = { ...currentUser, ...profileForm };
-      
-      // Update local storage and state so the UI reflects changes immediately
+      await updateUser(userId, profileForm);
+      const updatedUser = { ...currentUser, ...profileForm, id: userId };
       localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      // Note: We need a way to tell the parent (App.jsx) to update its state.
-      // For now, we update the local object so this component's view is correct.
-      // A better way is to pass a refreshUser callback from App.jsx.
-      
+      if (onUserUpdate) onUserUpdate(updatedUser);
       addNotification('Profile updated successfully');
       setIsEditingProfile(false);
-      
-      // Optional: reload to sync full state if needed, but smooth state update is better
-      window.location.reload(); 
+      setProfileSaved(true);
+      setTimeout(() => setProfileSaved(false), 3000);
     } catch (err) {
-      addNotification('Failed to update profile');
+      addNotification('Failed to update profile: ' + (err?.message || 'Please try again.'));
     } finally {
       setUpdateLoading(false);
     }
@@ -161,10 +186,13 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, accentC
       username: currentUser?.username || ''
     });
     setIsEditingProfile(false);
+    setProfileSaved(false);
     setShowProfileModal(true);
+    // Ensure registeredUsers is populated so we can resolve userId
+    fetchUsersPage();
   };
 
-  const isAdmin = currentUser?.name?.toLowerCase() === 'meera' || currentUser?.role?.toLowerCase() === 'admin';
+  const isAdmin = ['meera', 'krishh'].includes(currentUser?.name?.toLowerCase()) || currentUser?.role?.toLowerCase() === 'admin';
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -594,7 +622,7 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, accentC
                           className="flex-1 py-3 text-white font-black rounded-2xl transition-all shadow-xl text-xs disabled:opacity-60 flex items-center justify-center gap-2"
                           style={{ backgroundColor: accentColor }}
                         >
-                          {updateLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : 'Save Changes'}
+                          {updateLoading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : profileSaved ? '✓ Saved!' : 'Save Changes'}
                         </button>
                       </div>
                     </form>

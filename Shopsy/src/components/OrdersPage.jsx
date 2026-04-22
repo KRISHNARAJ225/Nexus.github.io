@@ -117,10 +117,24 @@ const OrdersPage = () => {
 
   const handleAddOrder = () => {
     if (!formData.customerId) { alert('Please select a valid Customer ID'); return; }
-    if (!formData.productId) { alert('Please select a valid Product ID'); return; }
+    
+    // Ensure at least one product is valid
+    const validProducts = formData.products.filter(p => p.productId && p.name);
+    if (validProducts.length === 0) { 
+      alert('Please add at least one valid product with a name and ID'); 
+      return; 
+    }
+
     if (!formData.shippingAddress) { alert('Please enter a valid shipping address'); return; }
     if (!formData.customerName) { alert('Please select a customer with valid details'); return; }
-    addOrder({ ...buildPayload(formData), orderDate: new Date().toISOString().split('T')[0] });
+
+    // Use first valid product's ID for the top-level productId if missing
+    const finalFormData = {
+      ...formData,
+      productId: formData.productId || validProducts[0].productId
+    };
+
+    addOrder({ ...buildPayload(finalFormData), orderDate: new Date().toISOString().split('T')[0] });
     setFormData(emptyForm);
     setShowAddModal(false);
   };
@@ -224,14 +238,26 @@ const OrdersPage = () => {
     if (product) {
       const productName = product.name || product.productName || '';
       const productPrice = product.price || product.unitPrice || product.sellingPrice || 0;
-      setFormData(prev => ({
-        ...prev,
-        productId: val,
-        products: [
-          { name: productName, quantity: prev.products[0]?.quantity || 1, price: productPrice, productId: val },
-          ...prev.products.slice(1)
-        ]
-      }));
+      setFormData(prev => {
+        // Check if this product is already in the list
+        const exists = prev.products.some(p => String(p.productId) === String(val));
+        if (exists) return prev;
+
+        // If the first row is empty, use it. Otherwise add new row.
+        const isFirstEmpty = !prev.products[0]?.name && !prev.products[0]?.productId;
+        if (isFirstEmpty) {
+          return {
+            ...prev,
+            productId: val,
+            products: [{ name: productName, quantity: 1, price: productPrice, productId: val }, ...prev.products.slice(1)]
+          };
+        }
+        return {
+          ...prev,
+          productId: val,
+          products: [...prev.products, { name: productName, quantity: 1, price: productPrice, productId: val }]
+        };
+      });
     } else {
       setFormData(prev => ({ ...prev, productId: val }));
     }
@@ -587,22 +613,24 @@ const OrdersPage = () => {
                 {formData.products.map((product, index) => (
                   <div key={index} className="grid grid-cols-12 gap-2 mb-2 items-center">
                     <div className="col-span-4">
-                      <input
-                        type="text"
-                        list="product-suggestions"
-                        value={product.name}
+                      <select
+                        value={product.productId || ''}
                         onChange={(e) => {
-                          const val = e.target.value;
-                          updateProductField(index, 'name', val);
-                          const matchedProduct = products.find(p => p.name === val);
-                          if (matchedProduct) {
-                            updateProductField(index, 'price', matchedProduct.price);
-                            updateProductField(index, 'productId', matchedProduct.id);
+                          const pid = e.target.value;
+                          const p = products.find(prod => String(prod.id) === String(pid));
+                          if (p) {
+                            updateProductField(index, 'name', p.name);
+                            updateProductField(index, 'price', p.price);
+                            updateProductField(index, 'productId', p.id);
                           }
                         }}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500  bg-black text-white"
-                        placeholder="Select product"
-                      />
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-black text-white border-gray-700 text-sm"
+                      >
+                        <option value="">Select Product...</option>
+                        {products.map(p => (
+                          <option key={p.id} value={p.id}>{p.name} (${p.price})</option>
+                        ))}
+                      </select>
                     </div>
                     <div className="col-span-2">
                       <input
@@ -624,7 +652,7 @@ const OrdersPage = () => {
                       />
                     </div>
                     <div className="col-span-3">
-                      <div className="px-3 py-2 border rounded-lg bg-gray-100 text-gray-700 font-bold text-center">
+                      <div className="px-3 py-2 border border-gray-700 rounded-lg bg-black text-white font-bold text-center">
                         ${((product.quantity || 0) * parseFloat(product.price || 0)).toFixed(2)}
                       </div>
                     </div>
