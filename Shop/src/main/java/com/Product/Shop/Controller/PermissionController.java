@@ -1,0 +1,49 @@
+package com.Product.Shop.Controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.Product.Shop.Model.Permission;
+import com.Product.Shop.Payload.Response.ApiResponse;
+import com.Product.Shop.Service.PermissionService;
+
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/v1/permissions")
+@RequiredArgsConstructor
+public class PermissionController {
+
+    @Autowired
+    private PermissionService service;
+
+    @GetMapping
+    public ResponseEntity<ApiResponse> getAllPermissions(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Success", service.listAll(page, size)));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse> getPermission(@PathVariable Long id) {
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Success", service.get(id)));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse> addPermission(@RequestBody Permission permission) {
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.CREATED.value(), "Permission Created", service.save(permission)));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse> updatePermission(@PathVariable Long id, @RequestBody Permission permission) {
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Permission Updated", service.update(id, permission)));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deletePermission(@PathVariable Long id) {
+        service.delete(id);
+        return ResponseEntity.ok(new ApiResponse(HttpStatus.OK.value(), "Permission Deleted", null));
+    }
+}

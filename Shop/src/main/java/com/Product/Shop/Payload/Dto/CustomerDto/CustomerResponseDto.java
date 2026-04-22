@@ -1,0 +1,14 @@
+package com.Product.Shop.Payload.Dto.CustomerDto;
+
+import lombok.Data;
+
+@Data
+public class CustomerResponseDto {
+  private Long id;
+  private String name;
+  private  String  email;  
+  private String address;
+  private String state;
+  private String country;
+  private String pincode;
+}
