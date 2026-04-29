@@ -43,6 +43,7 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, onUserU
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [toast, setToast] = useState(null);
+  const [isShaking, setIsShaking] = useState(false);
 
   // User Profile Modal state
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -59,11 +60,17 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, onUserU
   const [updateLoading, setUpdateLoading] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
 
-  const { products, customers, notifications, token, addNotification, registeredUsers, fetchUsersPage, updateUser } = useData();
+  const { products, customers, notifications, token, addNotification, registeredUsers, fetchUsersPage, updateUser, t } = useData();
 
   useEffect(() => {
     if (notifications?.length > 0) {
-      setToast(notifications[0]);
+      const latest = notifications[0];
+      setToast(latest);
+      
+      // Trigger bell vibration
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 600);
+
       const timer = setTimeout(() => setToast(null), 10000); // 10s timeout as requested
       return () => clearTimeout(timer);
     }
@@ -195,24 +202,24 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, onUserU
   const isAdmin = ['meera', 'krishh'].includes(currentUser?.name?.toLowerCase()) || currentUser?.role?.toLowerCase() === 'admin';
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
     ...(isAdmin ? [
-      { id: 'division', label: 'Division', icon: Tag },
+      { id: 'division', label: t('divisions'), icon: Tag },
     ] : []),
-    { id: 'products', label: 'Product', icon: Package },
-    { id: 'orders', label: 'Transaction', icon: ReceiptText },
-    { id: 'stocks', label: 'Stocks', icon: Package },
+    { id: 'products', label: t('products'), icon: Package },
+    { id: 'orders', label: t('transactions'), icon: ReceiptText },
+    { id: 'stocks', label: t('stocks'), icon: Package },
   ];
 
   const othersItems = [
-    { id: 'customer', label: 'Customer', icon: Users },
-    ...(isAdmin ? [{ id: 'user', label: 'User', icon: User }] : []),
+    { id: 'customer', label: t('customers'), icon: Users },
+    ...(isAdmin ? [{ id: 'user', label: t('users'), icon: User }] : []),
   ];
 
   const preferenceItems = [
     ...(isAdmin ? [
-      { id: 'calendar', label: 'Calendar', icon: Calendar },
-      { id: 'settings', label: 'Settings', icon: Settings },
+      { id: 'calendar', label: t('calendar'), icon: Calendar },
+      { id: 'settings', label: t('settings'), icon: Settings },
     ] : []),
   ];
 
@@ -244,7 +251,7 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, onUserU
     }`;
 
   return (
-    <div className={`flex min-h-screen ${darkMode ? 'bg-[#1e1e2d] text-white' : 'bg-[#f4f7fe] text-slate-800'}`}>
+    <div className={`flex min-h-screen ${darkMode ? 'dark bg-[#1e1e2d] text-white' : 'bg-[#f4f7fe] text-slate-800'}`}>
       {/* Sidebar */}
       <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-[260px]'} flex flex-col fixed h-full z-30 transition-all duration-300 ${darkMode ? 'bg-[#151521] border-slate-800' : 'bg-white border-slate-100 border-r shadow-sm'}`}>
         <div className={`relative h-20 flex items-center border-b border-transparent overflow-hidden ${isSidebarCollapsed ? 'justify-center' : 'px-0'}`}>
@@ -317,7 +324,7 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, onUserU
               >
                 <div className="flex items-center gap-3">
                   <HelpCircle className="w-5 h-5 group-hover:text-current" />
-                  {!isSidebarCollapsed && <span className="text-[14px] font-medium tracking-wide whitespace-nowrap">Help</span>}
+                  {!isSidebarCollapsed && <span className="text-[14px] font-medium tracking-wide whitespace-nowrap">{t('help')}</span>}
                 </div>
               </button>
 
@@ -327,7 +334,7 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, onUserU
               >
                 <div className="flex items-center gap-3">
                   <LogOut className="w-5 h-5 group-hover:text-current" />
-                  {!isSidebarCollapsed && <span className="text-[14px] font-medium tracking-wide whitespace-nowrap">Log Out</span>}
+                  {!isSidebarCollapsed && <span className="text-[14px] font-medium tracking-wide whitespace-nowrap">{t('logout')}</span>}
                 </div>
               </button>
             </div>
@@ -341,7 +348,7 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, onUserU
         <header className={`h-20 transition-all duration-300 ${darkMode ? 'bg-[#1e1e2d]/90' : 'bg-[#f4f7fe]/90'} backdrop-blur-xl px-8 flex items-center justify-between sticky top-0 z-20`}>
           <div className="flex items-center gap-12">
             <div>
-              <p className="text-xs text-slate-400 font-medium">Welcome,</p>
+              <p className="text-xs text-slate-400 font-medium">{t('welcome')},</p>
               <h2 className="text-2xl font-black tracking-tight bg-clip-text text-transparent animate-pulse"
                 style={{ backgroundImage: `linear-gradient(to right, ${accentColor}, ${accentColor}99)` }}>
                 {currentUser?.name || 'Admin User'}
@@ -404,9 +411,12 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, onUserU
               <div className="relative">
                 <button
                   onClick={() => setShowNotifications(!showNotifications)}
-                  className={`relative p-2 rounded-full transition-all ${darkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-400 hover:bg-slate-100'}`}
+                  className={`relative p-2 rounded-full transition-all ${darkMode ? 'text-slate-400 hover:bg-slate-800' : 'text-slate-400 hover:bg-slate-100'} ${isShaking ? 'bell-shake' : ''}`}
                 >
-                  <Bell className="w-5 h-5" />
+                  <Bell className={`w-5 h-5 ${isShaking ? 'text-orange-500' : ''}`} />
+                  {notifications?.length > 0 && (
+                    <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#f4f7fe] animate-ping"></span>
+                  )}
                   {notifications?.length > 0 && (
                     <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#f4f7fe]"></span>
                   )}
@@ -696,24 +706,77 @@ const Layout = ({ children, activePage, navigate, onLogout, currentUser, onUserU
         </div>
       )}
 
-      {/* Toast Notification */}
+      {/* Premium Toast Notification */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-[60] shadow-2xl transition-all duration-300">
-          <div className={`rounded-xl border p-4 flex items-center gap-4 w-80 relative overflow-hidden ${darkMode ? 'bg-[#151521] border-slate-700' : 'bg-white border-slate-100'}`}>
-            <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: accentColor }}></div>
-            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${accentColor}18` }}>
-              <Bell className="w-5 h-5" style={{ color: accentColor }} />
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4 animate-premium-toast">
+          <div className={`relative overflow-hidden rounded-[24px] border backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] ${darkMode ? 'bg-[#1a1a2e]/90 border-white/10' : 'bg-white/90 border-slate-200/60'} p-1`}>
+            {/* Inner Content */}
+            <div className={`flex items-center gap-4 p-4 rounded-[20px] ${darkMode ? 'bg-white/5' : 'bg-slate-50/50'}`}>
+              <div className="relative shrink-0">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg relative z-10 ${isShaking ? 'bell-shake' : ''}`} 
+                  style={{ backgroundColor: accentColor, color: '#fff' }}>
+                  <Bell className="w-7 h-7" />
+                </div>
+                <div className="absolute -inset-2 blur-lg opacity-30 animate-pulse" style={{ backgroundColor: accentColor }}></div>
+              </div>
+              
+              <div className="flex-1 min-w-0 pr-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-50">Notification</span>
+                  <div className="w-1 h-1 rounded-full bg-slate-300"></div>
+                  <span className="text-[10px] font-bold opacity-40">Just now</span>
+                </div>
+                <h4 className={`text-sm font-black tracking-tight truncate ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                  {toast.message?.includes('Successfully') ? 'Success Action' : 'System Update'}
+                </h4>
+                <p className={`text-xs font-bold truncate mt-0.5 opacity-60 ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                  {toast.message || toast}
+                </p>
+              </div>
+
+              <button 
+                onClick={() => setToast(null)}
+                className={`p-2.5 rounded-xl transition-all flex items-center justify-center ${darkMode ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-200 text-slate-500'}`}
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <div className="flex-1">
-              <h4 className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>New Update</h4>
-              <p className={`text-xs font-medium mt-0.5 ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>{toast.message}</p>
-            </div>
-            <button onClick={() => setToast(null)} className={`p-1 hover:bg-slate-100 rounded-full transition-colors ${darkMode ? 'text-slate-400' : 'text-slate-400'}`}>
-              <X className="w-4 h-4" />
-            </button>
+            
+            {/* Premium Progress Bar */}
+            <div className="absolute bottom-0 left-0 h-1 bg-gradient-to-r transition-all duration-[10000ms] linear" 
+              style={{ 
+                width: '100%',
+                backgroundImage: `linear-gradient(to right, ${accentColor}, #8A2BE2, ${accentColor})`,
+                animation: 'toast-progress 10s linear forwards'
+              }}></div>
           </div>
         </div>
       )}
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes bell-vibrate {
+          0%, 100% { transform: rotate(0deg); }
+          20% { transform: rotate(20deg); }
+          40% { transform: rotate(-20deg); }
+          60% { transform: rotate(15deg); }
+          80% { transform: rotate(-15deg); }
+        }
+        .bell-shake {
+          animation: bell-vibrate 0.6s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes premium-toast-in {
+          0% { transform: translate(-50%, -100%) scale(0.9); opacity: 0; }
+          60% { transform: translate(-50%, 10px) scale(1.02); opacity: 1; }
+          100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+        }
+        .animate-premium-toast {
+          animation: premium-toast-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes toast-progress {
+          0% { width: 100%; }
+          100% { width: 0%; }
+        }
+      `}} />
     </div>
   );
 };

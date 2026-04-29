@@ -3,6 +3,7 @@ import {
   User, Palette, ZoomIn, Bell, Globe, Shield, Monitor,
   Check, RotateCcw, Moon, Sun, Sliders
 } from 'lucide-react';
+import { useData } from '../contexts/DataContext';
 
 const ACCENT_COLORS = [
   { name: 'Navy',   value: '#1b2559' },
@@ -14,10 +15,10 @@ const ACCENT_COLORS = [
 ];
 
 const SettingsPage = ({ currentUser, onSettingsChange }) => {
+  const { language, setLanguage, t } = useData();
   const [accentColor, setAccentColor]   = useState(() => localStorage.getItem('accentColor')   || '#1b2559');
   const [zoomLevel, setZoomLevel]       = useState(() => parseInt(localStorage.getItem('zoomLevel')    || '100', 10));
   const [notifEnabled, setNotifEnabled] = useState(() => localStorage.getItem('notifEnabled') !== 'false');
-  const [language, setLanguage]         = useState(() => localStorage.getItem('language') || 'en');
   const [saved, setSaved]               = useState(false);
 
   // Propagate to Layout
@@ -38,12 +39,12 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
   const resetZoom = () => setZoomLevel(100);
 
   const SectionCard = ({ icon: Icon, title, children }) => (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-50">
+    <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800 overflow-hidden">
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-50 dark:border-slate-800">
         <div className="p-2 rounded-xl" style={{ backgroundColor: `${accentColor}15` }}>
           <Icon className="w-5 h-5" style={{ color: accentColor }} />
         </div>
-        <h2 className="text-base font-bold text-gray-800">{title}</h2>
+        <h2 className="text-base font-bold text-gray-800 dark:text-white">{title}</h2>
       </div>
       <div className="px-6 py-5">{children}</div>
     </div>
@@ -54,7 +55,7 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-400">Settings</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('settings')}</h1>
           <p className="text-sm text-gray-400">Customize your workspace preferences</p>
         </div>
         <button
@@ -63,12 +64,12 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
           style={{ backgroundColor: accentColor }}
         >
           {saved ? <Check className="w-4 h-4" /> : <Sliders className="w-4 h-4" />}
-          {saved ? 'Saved!' : 'Save Settings'}
+          {saved ? t('saved') : t('save')}
         </button>
       </div>
 
       {/* Profile Section */}
-      <SectionCard icon={User} title="Profile Information">
+      <SectionCard icon={User} title={t('profile_info')}>
         <div className="flex items-center gap-4">
           <div
             className="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-md"
@@ -77,8 +78,8 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
             {(currentUser?.name || 'U').charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 space-y-1">
-            <p className="text-lg font-bold text-gray-900">{currentUser?.name || '—'}</p>
-            <p className="text-sm text-gray-500">{currentUser?.email || '—'}</p>
+            <p className="text-lg font-bold text-gray-900 dark:text-white">{currentUser?.name || '—'}</p>
+            <p className="text-sm text-gray-500 dark:text-slate-400">{currentUser?.email || '—'}</p>
             <span
               className="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide text-white"
               style={{ backgroundColor: accentColor }}
@@ -90,8 +91,8 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
       </SectionCard>
 
       {/* Appearance */}
-      <SectionCard icon={Palette} title="Appearance & Theme Color">
-        <p className="text-sm text-gray-500 mb-4">Choose an accent color for the sidebar and interactive elements.</p>
+      <SectionCard icon={Palette} title={t('appearance')}>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">Choose an accent color for the sidebar and interactive elements.</p>
         <div className="flex flex-wrap gap-3">
           {ACCENT_COLORS.map(c => (
             <button
@@ -110,21 +111,21 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
           ))}
         </div>
         <div className="mt-4 flex items-center gap-3">
-          <span className="text-sm text-gray-500">Custom color:</span>
+          <span className="text-sm text-gray-500 dark:text-slate-400">Custom color:</span>
           <input
             type="color"
             value={accentColor}
             onChange={(e) => setAccentColor(e.target.value)}
-            className="w-10 h-10 rounded-xl border-none cursor-pointer"
+            className="w-10 h-10 rounded-xl border-none cursor-pointer bg-transparent"
             title="Pick custom color"
           />
-          <span className="text-xs font-mono text-gray-400">{accentColor}</span>
+          <span className="text-xs font-mono text-gray-400 dark:text-slate-500">{accentColor}</span>
         </div>
       </SectionCard>
 
       {/* Zoom / Magnifier */}
-      <SectionCard icon={ZoomIn} title="Zoom & Magnifier">
-        <p className="text-sm text-gray-500 mb-4">Adjust the page zoom level for better readability.</p>
+      <SectionCard icon={ZoomIn} title={t('zoom')}>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">Adjust the page zoom level for better readability.</p>
         <div className="flex items-center gap-4">
           <span className="text-xs font-bold text-gray-400 w-8">80%</span>
           <input
@@ -146,7 +147,7 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
           </div>
           <button
             onClick={resetZoom}
-            className="p-2 rounded-lg text-gray-400 hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-lg text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             title="Reset zoom"
           >
             <RotateCcw className="w-4 h-4" />
@@ -154,8 +155,8 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
         </div>
 
         {/* Live preview */}
-        <div className="mt-4 p-4 bg-gray-50 rounded-xl text-sm text-gray-600 font-medium">
-          <span className="text-xs text-gray-400 block mb-1">Live preview text at {zoomLevel}%</span>
+        <div className="mt-4 p-4 bg-gray-50 dark:bg-slate-800/50 rounded-xl text-sm text-gray-600 dark:text-slate-300 font-medium">
+          <span className="text-xs text-gray-400 dark:text-slate-500 block mb-1">Live preview text at {zoomLevel}%</span>
           <span style={{ fontSize: `${zoomLevel / 100}em` }}>
             This is how content will appear at {zoomLevel}% zoom.
           </span>
@@ -163,11 +164,11 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
       </SectionCard>
 
       {/* Notifications */}
-      <SectionCard icon={Bell} title="Notifications">
+      <SectionCard icon={Bell} title={t('notifs')}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-gray-700">Activity notifications</p>
-            <p className="text-xs text-gray-400 mt-0.5">Show toast alerts when items are added or updated</p>
+            <p className="text-sm font-semibold text-gray-700 dark:text-white">Activity notifications</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Show toast alerts when items are added or updated</p>
           </div>
           <button
             onClick={() => setNotifEnabled(!notifEnabled)}
@@ -180,27 +181,27 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
       </SectionCard>
 
       {/* Language */}
-      <SectionCard icon={Globe} title="Language & Region">
+      <SectionCard icon={Globe} title={t('lang_region')}>
         <div className="flex items-center gap-4">
-          <label className="text-sm font-semibold text-gray-700 w-32">Display Language</label>
+          <label className="text-sm font-semibold text-gray-700 dark:text-slate-300 w-32">Display Language</label>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 text-sm font-medium text-gray-700 bg-gray-50"
+            className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 text-sm font-medium text-gray-700 dark:text-white bg-gray-50 dark:bg-slate-800"
             style={{ focusRingColor: accentColor }}
           >
-            <option value="en">English</option>
-            <option value="ta">Tamil</option>
-            <option value="hi">Hindi</option>
-            <option value="te">Telugu</option>
-            <option value="kn">Kannada</option>
-            <option value="ml">Malayalam</option>
+            <option value="en" className="dark:bg-slate-900">English</option>
+            <option value="ta" className="dark:bg-slate-900">Tamil</option>
+            <option value="hi" className="dark:bg-slate-900">Hindi</option>
+            <option value="te" className="dark:bg-slate-900">Telugu</option>
+            <option value="kn" className="dark:bg-slate-900">Kannada</option>
+            <option value="ml" className="dark:bg-slate-900">Malayalam</option>
           </select>
         </div>
       </SectionCard>
 
       {/* System Info */}
-      <SectionCard icon={Monitor} title="System Info">
+      <SectionCard icon={Monitor} title={t('sys_info')}>
         <div className="grid grid-cols-2 gap-3 text-sm">
           {[
             ['App Version', 'StockFlow v1.0.0'],
@@ -208,9 +209,9 @@ const SettingsPage = ({ currentUser, onSettingsChange }) => {
             ['Screen Resolution', `${window.screen.width} × ${window.screen.height}`],
             ['Current Zoom', `${zoomLevel}%`],
           ].map(([label, value]) => (
-            <div key={label} className="p-3 bg-gray-50 rounded-xl">
-              <p className="text-xs text-gray-400 font-medium">{label}</p>
-              <p className="font-semibold text-gray-700 mt-0.5">{value}</p>
+            <div key={label} className="p-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-transparent dark:border-slate-800">
+              <p className="text-xs text-gray-400 dark:text-slate-500 font-medium">{label}</p>
+              <p className="font-semibold text-gray-700 dark:text-slate-300 mt-0.5">{value}</p>
             </div>
           ))}
         </div>

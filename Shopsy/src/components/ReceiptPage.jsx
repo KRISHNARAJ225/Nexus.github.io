@@ -79,6 +79,16 @@ const ReceiptPage = () => {
   const payColor = getPaymentStatusColor(order.paymentStatus);
   const ordColor = getOrderStatusColor(order.orderStatus);
 
+  const calculateDisplayBreakdown = (o) => {
+    const prods = o.products || o.orderItems || [];
+    const subtotal = prods.reduce((sum, p) => sum + ((p.price || 0) * (p.quantity || p.qty || 1)), 0);
+    const gst = parseFloat(o.gst) > 0 ? parseFloat(o.gst) : subtotal * 0.18;
+    const tax = parseFloat(o.tax) > 0 ? parseFloat(o.tax) : subtotal * 0.05;
+    const discount = parseFloat(o.discount) > 0 ? parseFloat(o.discount) : prods.reduce((sum, p) => sum + (parseFloat(p.discount) || 0), 0);
+    const total = subtotal + gst + tax - discount;
+    return { subtotal, gst, tax, discount, total };
+  };
+
   return (
     <div className="min-h-screen py-8 px-4 flex justify-center items-start" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #eef2ff 50%, #f0f4ff 100%)' }}>
       <div className="bg-white rounded-2xl shadow-lg p-6 sm:p-8 w-full max-w-2xl border border-gray-100" style={{ animation: 'fadeInUp 0.5s ease' }}>
@@ -165,11 +175,12 @@ const ReceiptPage = () => {
                   const qty = product.quantity || product.qty || 1;
                   const price = product.price || 0;
                   const name = product.name || product.productName || 'Unknown Product';
+                  const uom = product.uom || '';
                   return (
                     <div key={index} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
                       <div>
                         <p className="font-medium text-gray-900">{name}</p>
-                        <p className="text-sm text-gray-500">Qty: {qty} × ${(price).toFixed(2)}</p>
+                        <p className="text-sm text-gray-500">Qty: {qty} {uom} × ${(price).toFixed(2)}</p>
                       </div>
                       <p className="font-bold text-gray-900">${(price * qty).toFixed(2)}</p>
                     </div>
@@ -180,50 +191,38 @@ const ReceiptPage = () => {
           </div>
 
           <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">Subtotal</span>
-              <span className="font-medium text-gray-900">
-                ${products.reduce((sum, p) => sum + ((p.price || 0) * (p.quantity || p.qty || 1)), 0).toFixed(2)}
-              </span>
-            </div>
-            {parseFloat(order.gst || 0) > 0 && (
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">GST (18%)</span>
-                <span className="font-medium text-gray-900">${parseFloat(order.gst).toFixed(2)}</span>
-              </div>
-            )}
-            {parseFloat(order.tax || 0) > 0 && (
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Tax (5%)</span>
-                <span className="font-medium text-gray-900">${parseFloat(order.tax).toFixed(2)}</span>
-              </div>
-            )}
-            {parseFloat(order.discount || 0) > 0 && (
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Discount</span>
-                <span className="font-medium text-red-600">-${parseFloat(order.discount).toFixed(2)}</span>
-              </div>
-            )}
-            <div className="flex justify-between items-center pt-3 border-t border-gray-200 mt-3">
-              <h3 className="font-semibold text-gray-900">Total Amount</h3>
-              <p className="text-2xl font-bold text-blue-600">${(order.finalAmount || order.totalAmount || 0).toFixed(2)}</p>
-            </div>
+            {(() => {
+              const bd = calculateDisplayBreakdown(order);
+              return (
+                <>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Subtotal</span>
+                    <span className="font-medium text-gray-900">
+                      ${bd.subtotal.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">GST (18%)</span>
+                    <span className="font-medium text-gray-900">${bd.gst.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Tax (5%)</span>
+                    <span className="font-medium text-gray-900">${bd.tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Discount</span>
+                    <span className="font-medium text-red-600">-${bd.discount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t border-gray-200 mt-3">
+                    <h3 className="font-semibold text-gray-900">Total Amount</h3>
+                    <p className="text-2xl font-bold text-blue-600">${bd.total.toFixed(2)}</p>
+                  </div>
+                </>
+              );
+            })()}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white border border-gray-100 rounded-xl p-4 text-center">
-              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Payment Status</label>
-              <span className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full bg-${payColor}-100 text-${payColor}-800`}>
-                {order.paymentStatus || 'PENDING'}
-              </span>
-            </div>
-            <div className="bg-white border border-gray-100 rounded-xl p-4 text-center">
-              <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Order Status</label>
-              <span className={`px-3 py-1 inline-flex text-sm font-semibold rounded-full bg-${ordColor}-100 text-${ordColor}-800`}>
-                {order.orderStatus || 'PENDING'}
-              </span>
-            </div>
-          </div>
+          {/* Payment and Order Status removed as per requirement to not reflect updates on receipt */}
           
         </div>
       </div>

@@ -10,10 +10,23 @@ const DivisionPage = () => {
   const [editingDivision, setEditingDivision] = useState(null);
   const [viewingDivision, setViewingDivision] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // grid or list
-  const [formData, setFormData] = useState({
+  const emptyForm = {
     name: '',
-    type: 'Physical Goods'
-  });
+    type: 'Physical Goods',
+    batchCode: ''
+  };
+
+  const [formData, setFormData] = useState(emptyForm);
+  const [errors, setErrors] = useState({});
+
+  const validate = (data) => {
+    const e = {};
+    if (!data.name?.trim()) e.name = 'Division name is required';
+    if (!data.type) e.type = 'Division type is required';
+    
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,31 +38,42 @@ const DivisionPage = () => {
 
   const divisionTypes = ['Physical Goods', 'Digital', 'Services'];
 
-  const displayedDivisions = divisionPageData.content.filter(division =>
-    (division.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (division.type || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const displayedDivisions = divisionPageData.content
+    .filter(division =>
+      (division.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (division.type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (division.batchCode || '').toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      const codeA = a.batchCode || '';
+      const codeB = b.batchCode || '';
+      return codeA.localeCompare(codeB);
+    });
 
   const handleAddDivision = () => {
-    if (formData.name && formData.type) {
-      addDivision(formData);
-      setFormData({ name: '', type: 'Physical Goods' });
-      setShowAddModal(false);
-    }
+    if (!validate(formData)) return;
+    addDivision(formData);
+    setFormData(emptyForm);
+    setShowAddModal(false);
+    setErrors({});
   };
 
   const handleEditDivision = (division) => {
     setEditingDivision(division);
     setFormData({
-      name: division.name,
-      type: division.type
+      name: division.name || '',
+      type: division.type || 'Physical Goods',
+      batchCode: division.batchCode || ''
     });
+    setErrors({});
   };
 
   const handleUpdateDivision = () => {
+    if (!validate(formData)) return;
     updateDivision(editingDivision.id, formData);
     setEditingDivision(null);
-    setFormData({ name: '', type: 'Physical Goods' });
+    setFormData(emptyForm);
+    setErrors({});
   };
 
   const handleDeleteDivision = (id) => {
@@ -90,11 +114,11 @@ const DivisionPage = () => {
       {/* Page Header Actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold  text-gray-400">Divisions</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Divisions</h1>
           <p className="text-sm text-gray-400">Manage your product divisions</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-xl transition-all duration-300">
+          <button className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all duration-300">
             <Download className="w-4 h-4" />
             <span className="font-medium text-sm">Export</span>
           </button>
@@ -110,20 +134,20 @@ const DivisionPage = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-50">
+        <div className="bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-blue-50 rounded-xl">
-              <FolderOpen className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+              <FolderOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
-          <p className="text-xs font-medium text-gray-400">Total Divisions</p>
-          <h3 className="text-xl font-bold text-gray-900">{divisions.length}</h3>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Divisions</p>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">{divisions.length}</h3>
         </div>
       </div>
 
       {/* Main Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
-        <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+      <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800 overflow-hidden">
+        <div className="p-6 border-b border-gray-50 dark:border-slate-800 flex items-center justify-between">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -134,19 +158,19 @@ const DivisionPage = () => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-blue-900 text-sm"
+              className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-blue-900 text-sm text-gray-900 dark:text-white"
             />
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-blue-900 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-blue-900 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
             >
               <Grid3X3 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-blue-900 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50'}`}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-blue-900 text-white shadow-md' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
             >
               <List className="w-4 h-4" />
             </button>
@@ -156,30 +180,33 @@ const DivisionPage = () => {
         {viewMode === 'grid' ? (
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedDivisions.map((division) => (
-              <div key={division.id} className="group p-6 bg-white rounded-2xl border border-slate-100/50 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-500/30 transition-all duration-300 cursor-pointer">
+              <div key={division.id} className="group p-6 bg-white dark:bg-slate-800/40 rounded-2xl border border-slate-100/50 dark:border-slate-800/50 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-500/10 hover:border-blue-500/30 transition-all duration-300 cursor-pointer">
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 bg-${getDivisionColor(division.type)}-50 text-${getDivisionColor(division.type)}-600 rounded-xl`}>
+                  <div className={`p-3 bg-${getDivisionColor(division.type)}-50 dark:bg-${getDivisionColor(division.type)}-900/20 text-${getDivisionColor(division.type)}-600 dark:text-${getDivisionColor(division.type)}-400 rounded-xl`}>
                     {getDivisionIcon(division.type)}
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => handleEditDivision(division)} className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50">
+                    <button onClick={() => handleEditDivision(division)} className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30">
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDeleteDivision(division.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50">
+                    <button onClick={() => handleDeleteDivision(division.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-                <h4 className="text-lg font-bold text-gray-900 mb-1">{division.name}</h4>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{division.type}</p>
-                <div className="mt-6 pt-6 border-t border-gray-100 flex items-center justify-between">
+                <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-1">{division.name}</h4>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-widest">{division.type}</p>
+                  <p className="text-[10px] font-mono bg-gray-100 dark:bg-slate-700 px-2 py-0.5 rounded text-gray-600 dark:text-slate-300">{division.batchCode || 'N/A'}</p>
+                </div>
+                <div className="mt-6 pt-6 border-t border-gray-100 dark:border-slate-700 flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Items</p>
-                    <p className="text-sm font-bold text-gray-900">{getDivisionStats(division.name).items}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-1">Items</p>
+                    <p className="text-sm font-bold text-gray-900 dark:text-white">{getDivisionStats(division.name).items}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Products</p>
-                    <p className="text-sm font-bold text-green-600">{getDivisionStats(division.name).growth}</p>
+                    <p className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-wider mb-1">Products</p>
+                    <p className="text-sm font-bold text-green-600 dark:text-green-400">{getDivisionStats(division.name).growth}</p>
                   </div>
                 </div>
               </div>
@@ -191,32 +218,34 @@ const DivisionPage = () => {
               <thead>
                 <tr className="text-gray-400 text-xs uppercase tracking-wider">
                   <th className="px-6 py-4 font-semibold">Name</th>
+                  <th className="px-6 py-4 font-semibold">Batch Code</th>
                   <th className="px-6 py-4 font-semibold">Type</th>
                   <th className="px-6 py-4 font-semibold">Items</th>
                   <th className="px-6 py-4 font-semibold">Growth</th>
                   <th className="px-6 py-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="text-sm divide-y divide-gray-50">
+              <tbody className="text-sm divide-y divide-gray-50 dark:divide-slate-800">
                 {displayedDivisions.map((division) => (
-                  <tr key={division.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={division.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full bg-${getDivisionColor(division.type)}-50 text-${getDivisionColor(division.type)}-600 flex items-center justify-center`}>
+                        <div className={`w-8 h-8 rounded-full bg-${getDivisionColor(division.type)}-50 dark:bg-${getDivisionColor(division.type)}-900/20 text-${getDivisionColor(division.type)}-600 dark:text-${getDivisionColor(division.type)}-400 flex items-center justify-center`}>
                           {getDivisionIcon(division.type)}
                         </div>
-                        <span className="font-medium text-gray-900">{division.name}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{division.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-500 uppercase text-xs tracking-widest font-bold">{division.type}</td>
-                    <td className="px-6 py-4 text-gray-500">{getDivisionStats(division.name).items}</td>
-                    <td className="px-6 py-4 font-bold text-green-600">{getDivisionStats(division.name).growth}</td>
+                    <td className="px-6 py-4 text-gray-500 dark:text-slate-400 font-mono text-xs">{division.batchCode || 'N/A'}</td>
+                    <td className="px-6 py-4 text-gray-500 dark:text-slate-400 uppercase text-xs tracking-widest font-bold">{division.type}</td>
+                    <td className="px-6 py-4 text-gray-500 dark:text-slate-400">{getDivisionStats(division.name).items}</td>
+                    <td className="px-6 py-4 font-bold text-green-600 dark:text-green-400">{getDivisionStats(division.name).growth}</td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => handleEditDivision(division)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                        <button onClick={() => handleEditDivision(division)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all">
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDeleteDivision(division.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all">
+                        <button onClick={() => handleDeleteDivision(division.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -237,36 +266,37 @@ const DivisionPage = () => {
 
       {/* Add Division Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
-            <div className="p-6 border-b border-gray-100 bg-black">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-2xl w-full max-w-md transform transition-all border dark:border-slate-800">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-50 rounded-xl">
-                    <Plus className="w-5 h-5 text-green-600" />
+                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                    <Plus className="w-5 h-5 text-green-600 dark:text-green-400" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900 text-white">Add New Division</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Division</h2>
                 </div>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-all duration-300"
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all duration-300"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
-            <div className="p-6 space-y-4 bg-black">
+            <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2 text-white">
-                  Division Name
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                  Division Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 text-white"
+                  onChange={(e) => { setFormData({ ...formData, name: e.target.value }); if(errors.name) setErrors({...errors, name: ''}); }}
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800/50 text-gray-900 dark:text-white ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
                   placeholder="Enter division name"
                 />
+                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
               </div>
               <div className="flex gap-3 pt-4">
                 <button
@@ -277,7 +307,7 @@ const DivisionPage = () => {
                 </button>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold"
+                  className="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-all duration-300 font-semibold"
                 >
                   Cancel
                 </button>
@@ -289,15 +319,15 @@ const DivisionPage = () => {
 
       {/* Edit Division Modal */}
       {editingDivision && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
-            <div className="p-6 border-b border-gray-100">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-2xl w-full max-w-md transform transition-all border dark:border-slate-800">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 rounded-xl">
-                    <Edit2 className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                    <Edit2 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900">Edit Division</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Division</h2>
                 </div>
                 <button
                   onClick={() => setEditingDivision(null)}
@@ -309,32 +339,34 @@ const DivisionPage = () => {
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Division Name
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                  Division Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50/50"
+                  onChange={(e) => { setFormData({ ...formData, name: e.target.value }); if(errors.name) setErrors({...errors, name: ''}); }}
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800/50 text-gray-900 dark:text-white ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-blue-500'}`}
                 />
+                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Division Type
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-2">
+                  Division Type <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.type}
-                  onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50/50"
+                  onChange={(e) => { setFormData({ ...formData, type: e.target.value }); if(errors.type) setErrors({...errors, type: ''}); }}
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800/50 text-gray-900 dark:text-white ${errors.type ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-blue-500'}`}
                 >
                   {divisionTypes.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type} className="dark:bg-slate-900">{type}</option>
                   ))}
                 </select>
               </div>
               <div className="flex gap-3 pt-4">
                 <button
+                
                   onClick={handleUpdateDivision}
                   className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl hover:shadow-lg transition-all duration-300 font-semibold flex items-center justify-center gap-2"
                 >
@@ -343,7 +375,7 @@ const DivisionPage = () => {
                 </button>
                 <button
                   onClick={() => setEditingDivision(null)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold"
+                  className="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-all duration-300 font-semibold"
                 >
                   Cancel
                 </button>
@@ -355,15 +387,15 @@ const DivisionPage = () => {
 
       {/* View Division Modal */}
       {viewingDivision && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
-            <div className="p-6 border-b border-gray-100">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-2xl w-full max-w-md transform transition-all border dark:border-slate-800">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-50 rounded-xl">
-                    <Eye className="w-5 h-5 text-green-600" />
+                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                    <Eye className="w-5 h-5 text-green-600 dark:text-green-400" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900">Division Details</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Division Details</h2>
                 </div>
                 <button
                   onClick={() => setViewingDivision(null)}
@@ -375,39 +407,39 @@ const DivisionPage = () => {
             </div>
             <div className="p-6 space-y-6">
               <div className="flex items-center gap-4">
-                <div className={`p-4 bg-${getDivisionColor(viewingDivision.type)}-50 rounded-xl`}>
+                <div className={`p-4 bg-${getDivisionColor(viewingDivision.type)}-50 dark:bg-${getDivisionColor(viewingDivision.type)}-900/20 rounded-xl`}>
                   {getDivisionIcon(viewingDivision.type)}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">{viewingDivision.name}</h3>
-                  <p className="text-gray-600">Division ID: #{viewingDivision.id}</p>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white">{viewingDivision.name}</h3>
+                  <p className="text-gray-600 dark:text-slate-400">Division ID: #{viewingDivision.id}</p>
                 </div>
               </div>
               
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
                   <Tag className="w-5 h-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-600">Type</p>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-${getDivisionColor(viewingDivision.type)}-100 text-${getDivisionColor(viewingDivision.type)}-800 border border-${getDivisionColor(viewingDivision.type)}-200`}>
+                    <p className="text-sm text-gray-600 dark:text-slate-400">Type</p>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-${getDivisionColor(viewingDivision.type)}-100 dark:bg-${getDivisionColor(viewingDivision.type)}-900/40 text-${getDivisionColor(viewingDivision.type)}-800 dark:text-${getDivisionColor(viewingDivision.type)}-300 border border-${getDivisionColor(viewingDivision.type)}-200 dark:border-${getDivisionColor(viewingDivision.type)}-800`}>
                       {viewingDivision.type}
                     </span>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
                   <Package className="w-5 h-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-600">Total Items</p>
-                    <p className="font-medium text-gray-900">{getDivisionStats(viewingDivision.name).items}</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-400">Total Items</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{getDivisionStats(viewingDivision.name).items}</p>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
                   <Archive className="w-5 h-5 text-gray-400" />
                   <div>
-                    <p className="text-sm text-gray-600">Products in Division</p>
-                    <p className="font-medium text-green-600">{getDivisionStats(viewingDivision.name).growth}</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-400">Products in Division</p>
+                    <p className="font-medium text-green-600 dark:text-green-400">{getDivisionStats(viewingDivision.name).growth}</p>
                   </div>
                 </div>
               </div>
@@ -415,7 +447,7 @@ const DivisionPage = () => {
               <div className="pt-4">
                 <button
                   onClick={() => setViewingDivision(null)}
-                  className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold"
+                  className="w-full bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-all duration-300 font-semibold"
                 >
                   Close
                 </button>

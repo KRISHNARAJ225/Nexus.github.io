@@ -27,14 +27,15 @@ const CustomerPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
   const [viewingCustomer, setViewingCustomer] = useState(null);
+  const [customerToDelete, setCustomerToDelete] = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    name: '', email: '', address: '', state: '', pincode: '', country: 'India'
+    name: '', email: '', address: '', state: '', pincode: '', country: 'India', address2: '', state2: ''
   });
 
-  const emptyForm = { name: '', email: '', address: '', state: '', pincode: '', country: 'India' };
+  const emptyForm = { name: '', email: '', address: '', state: '', pincode: '', country: 'India', address2: '', state2: '' };
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,7 +68,12 @@ const CustomerPage = () => {
 
   const handleAddCustomer = () => {
     if (!validate(formData)) return;
-    addCustomer(formData);
+    const payload = {
+      ...formData,
+      address: formData.address + (formData.address2 ? ` | ${formData.address2}` : ''),
+      state: formData.state + (formData.state2 ? ` | ${formData.state2}` : '')
+    };
+    addCustomer(payload);
     setFormData(emptyForm);
     setErrors({});
     setShowAddModal(false);
@@ -76,11 +82,15 @@ const CustomerPage = () => {
 
   const handleEditCustomer = (customer) => {
     setEditingCustomer(customer);
+    const [addr1, addr2] = (customer.address || '').split(' | ');
+    const [st1, st2] = (customer.state || '').split(' | ');
     setFormData({
       name: customer.name || '',
       email: customer.email || '',
-      address: customer.address || '',
-      state: customer.state || '',
+      address: addr1 || '',
+      address2: addr2 || '',
+      state: st1 || '',
+      state2: st2 || '',
       pincode: customer.pincode || '',
       country: customer.country || 'India',
     });
@@ -88,7 +98,12 @@ const CustomerPage = () => {
   };
 
   const handleUpdateCustomer = () => {
-    updateCustomer(editingCustomer.id, formData);
+    const payload = {
+      ...formData,
+      address: formData.address + (formData.address2 ? ` | ${formData.address2}` : ''),
+      state: formData.state + (formData.state2 ? ` | ${formData.state2}` : '')
+    };
+    updateCustomer(editingCustomer.id, payload);
     setEditingCustomer(null);
     setFormData(emptyForm);
   };
@@ -96,17 +111,17 @@ const CustomerPage = () => {
   const closeAdd = () => { setShowAddModal(false); setFormData(emptyForm); setErrors({}); };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-8">
+    <div className="min-h-screen bg-[#f4f7fe] dark:bg-[#1e1e2d] p-8 transition-colors duration-300">
       <div className="space-y-8">
 
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-            <p className="text-sm text-gray-400">Manage your customer database</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Customers</h1>
+            <p className="text-sm text-gray-400 dark:text-slate-500">Manage your customer database</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-xl transition-all duration-300">
+            <button className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all duration-300 cursor-pointer">
               <Download className="w-4 h-4" />
               <span className="font-medium text-sm">Export</span>
             </button>
@@ -120,22 +135,20 @@ const CustomerPage = () => {
           </div>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-50">
+          <div className="bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-50 rounded-xl">
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
                 <Users className="w-6 h-6 text-blue-600" />
               </div>
             </div>
-            <p className="text-xs font-medium text-gray-400">Total Customers</p>
-            <h3 className="text-xl font-bold text-gray-900">{customers.length}</h3>
+            <p className="text-xs font-medium text-gray-400 dark:text-slate-500">Total Customers</p>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{customers.length}</h3>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800 overflow-hidden">
+          <div className="p-6 border-b border-gray-50 dark:border-slate-800 flex items-center justify-between">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -149,7 +162,7 @@ const CustomerPage = () => {
                 className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-blue-900 dark:text-white text-sm"
               />
             </div>
-            <button className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-xl transition-all duration-300">
+            <button className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all duration-300 cursor-pointer">
               <Filter className="w-4 h-4" />
               <span className="font-medium text-sm">Filter</span>
             </button>
@@ -158,7 +171,7 @@ const CustomerPage = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-gray-400 text-xs uppercase tracking-wider">
+                <tr className="text-gray-400 dark:text-slate-500 text-xs uppercase tracking-wider">
                   <th className="px-6 py-4 font-semibold">Name</th>
                   <th className="px-6 py-4 font-semibold">Email</th>       
                   <th className="px-6 py-4 font-semibold">Country</th>
@@ -166,37 +179,37 @@ const CustomerPage = () => {
                   <th className="px-6 py-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="text-sm divide-y divide-gray-50">
+              <tbody className="text-sm divide-y divide-gray-50 dark:divide-slate-800">
                 {displayedCustomers.length === 0 ? (
-                  <tr><td colSpan={5} className="py-8 text-center text-gray-400 text-sm">No customers found</td></tr>
+                  <tr><td colSpan={5} className="py-8 text-center text-gray-400 dark:text-slate-500 text-sm">No customers found</td></tr>
                 ) : (
                   displayedCustomers.map((customer) => (
-                    <tr key={customer.id} className="hover:bg-blue-50/50 hover:outline hover:outline-2 hover:outline-blue-400 hover:-translate-y-0.5 transition-all cursor-pointer">
+                    <tr key={customer.id} className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 hover:outline hover:outline-2 hover:outline-blue-400 hover:-translate-y-0.5 transition-all cursor-pointer">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs uppercase">
+                          <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs uppercase">
                             {(customer.name || '?').charAt(0)}
                           </div>
-                          <span className="font-medium text-gray-900">{customer.name}</span>
+                          <span className="font-medium text-gray-900 dark:text-slate-200">{customer.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-500">{customer.email}</td>
+                      <td className="px-6 py-4 text-gray-500 dark:text-slate-400">{customer.email}</td>
 
                       <td className="px-6 py-4">
-                        <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider">{customer.country || 'India'}</span>
+                        <span className="px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">{customer.country || 'India'}</span>
                       </td>
                        <td className="px-6 py-4">
-                        <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider">{customer.state || 'Tamilnadu'}</span>
+                        <span className="px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold uppercase tracking-wider">{customer.state || 'Tamilnadu'}</span>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <button onClick={() => setViewingCustomer(customer)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer">
+                          <button onClick={() => setViewingCustomer(customer)} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all cursor-pointer">
                             <Eye className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleEditCustomer(customer)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer">
+                          <button onClick={() => handleEditCustomer(customer)} className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all cursor-pointer">
                             <Edit2 className="w-4 h-4" />
                           </button>
-                          <button onClick={() => deleteCustomer(customer.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer">
+                          <button onClick={() => setCustomerToDelete(customer.id)} className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all cursor-pointer">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -219,14 +232,14 @@ const CustomerPage = () => {
       {/* ── Add Customer Modal ── */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
-            <div className="p-6 border-b border-gray-100">
+          <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-2xl w-full max-w-md transform transition-all border border-gray-100 dark:border-slate-800">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 rounded-xl"><Plus className="w-5 h-5 text-blue-600" /></div>
-                  <h2 className="text-xl font-bold text-gray-900">Add New Customer</h2>
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl"><Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" /></div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Customer</h2>
                 </div>
-                <button onClick={closeAdd} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-all duration-300">
+                <button onClick={closeAdd} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all duration-300 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -235,7 +248,7 @@ const CustomerPage = () => {
             <div className="p-6 space-y-4">
               {/* Full Name */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">Full Name</label>
                 <input
                   type="text"
                   value={formData.name}
@@ -253,7 +266,7 @@ const CustomerPage = () => {
 
               {/* Email Address */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">Email Address</label>
                 <input
                   type="email"
                   value={formData.email}
@@ -270,7 +283,7 @@ const CustomerPage = () => {
 
               {/* Country */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">Country</label>
                 <div className="relative">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
                   <select
@@ -290,36 +303,46 @@ const CustomerPage = () => {
               </div>
 
               {/* Address */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => {
-                    setFormData({ ...formData, address: e.target.value });
-                    if (errors.address) setErrors({ ...errors, address: '' });
-                  }}
-                  onBlur={() => validate(formData)}
-                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.address ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-blue-500'}`}
-                  placeholder="Enter address"
-                />
-                {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">Primary Address</label>
+                  <input
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => {
+                      setFormData({ ...formData, address: e.target.value });
+                      if (errors.address) setErrors({ ...errors, address: '' });
+                    }}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.address ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-blue-500'}`}
+                    placeholder="Enter primary address"
+                  />
+                  {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">Secondary Address (Optional)</label>
+                  <input
+                    type="text"
+                    value={formData.address2}
+                    onChange={(e) => setFormData({ ...formData, address2: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                    placeholder="Enter secondary address"
+                  />
+                </div>
               </div>
 
               {/* State & PIN Code */}
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">State</label>
                   <select
                     value={formData.state}
                     onChange={(e) => {
                       setFormData({ ...formData, state: e.target.value });
                       if (errors.state) setErrors({ ...errors, state: '' });
                     }}
-                    onBlur={() => validate(formData)}
                     className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.state ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-blue-500'}`}
                   >
-                    <option value="">Select State</option>
+                    <option value="">Primary State</option>
                     <option value="Tamilnadu">Tamilnadu</option>
                     <option value="Kerala">Kerala</option>
                     <option value="Andhra Pradesh">Andhra Pradesh</option>
@@ -337,7 +360,32 @@ const CustomerPage = () => {
                 </div>
 
                 <div className="flex-1">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">PIN Code</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">Secondary State</label>
+                  <select
+                    value={formData.state2}
+                    onChange={(e) => setFormData({ ...formData, state2: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                  >
+                    <option value="">Secondary State</option>
+                    <option value="Tamilnadu">Tamilnadu</option>
+                    <option value="Kerala">Kerala</option>
+                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                    <option value="Puducherry">Puducherry</option>
+                    <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                    <option value="Telangana">Telangana</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Lakshadweep">Lakshadweep</option>
+                    <option value="Bihar">Bihar</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">PIN Code</label>
                   <input
                     type="text"
                     value={formData.pincode}
@@ -365,7 +413,7 @@ const CustomerPage = () => {
                 </button>
                 <button
                   onClick={closeAdd}
-                  className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold"
+                  className="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-all duration-300 font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -378,21 +426,21 @@ const CustomerPage = () => {
       {/* ── Edit Customer Modal ── */}
       {editingCustomer && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
-            <div className="p-6 border-b border-gray-100">
+          <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-2xl w-full max-w-md transform transition-all border border-gray-100 dark:border-slate-800">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-50 rounded-xl"><Edit2 className="w-5 h-5 text-green-600" /></div>
-                  <h2 className="text-xl font-bold text-gray-900">Edit Customer</h2>
+                  <div className="p-2 bg-green-50 dark:bg-emerald-900/20 rounded-xl"><Edit2 className="w-5 h-5 text-green-600 dark:text-emerald-400" /></div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Edit Customer</h2>
                 </div>
-                <button onClick={() => setEditingCustomer(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-all duration-300">
+                <button onClick={() => setEditingCustomer(null)} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all duration-300 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">Full Name</label>
                 <input
                   type="text"
                   value={formData.name}
@@ -401,7 +449,7 @@ const CustomerPage = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">Email Address</label>
                 <input
                   type="email"
                   value={formData.email}
@@ -410,7 +458,7 @@ const CustomerPage = () => {
                 />
               </div>              {/* Country */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Country</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">Country</label>
                 <div className="relative">
                   <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none z-10" />
                   <select
@@ -425,7 +473,7 @@ const CustomerPage = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Address</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">Address</label>
                 <input
                   type="text"
                   value={formData.address}
@@ -435,7 +483,7 @@ const CustomerPage = () => {
               </div>
               <div className="flex gap-4">
                 <div className="flex-1">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">State</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">State</label>
                   <select
                     value={formData.state}
                     onChange={(e) => setFormData({ ...formData, state: e.target.value })}
@@ -457,7 +505,7 @@ const CustomerPage = () => {
                   </select>
                 </div>
                 <div className="flex-1">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">PIN Code</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-slate-400 mb-2">PIN Code</label>
                   <input
                     type="text"
                     value={formData.pincode}
@@ -476,7 +524,7 @@ const CustomerPage = () => {
                 </button>
                 <button
                   onClick={() => setEditingCustomer(null)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold"
+                  className="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-all duration-300 font-semibold cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -489,14 +537,14 @@ const CustomerPage = () => {
       {/* ── View Customer Modal ── */}
       {viewingCustomer && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
-            <div className="p-6 border-b border-gray-100">
+          <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-2xl w-full max-w-md transform transition-all border border-gray-100 dark:border-slate-800">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-50 rounded-xl"><Eye className="w-5 h-5 text-blue-600" /></div>
-                  <h2 className="text-xl font-bold text-gray-900">Customer Details</h2>
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl"><Eye className="w-5 h-5 text-blue-600 dark:text-blue-400" /></div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Customer Details</h2>
                 </div>
-                <button onClick={() => setViewingCustomer(null)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition-all duration-300">
+                <button onClick={() => setViewingCustomer(null)} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all duration-300 cursor-pointer">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -507,46 +555,52 @@ const CustomerPage = () => {
                   {(viewingCustomer.name || '?').charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg">{viewingCustomer.name}</h3>
-                  <p className="text-sm text-gray-500">Customer</p>
+                  <h3 className="font-bold text-gray-900 dark:text-white text-lg">{viewingCustomer.name}</h3>
+                  <p className="text-sm text-gray-500 dark:text-slate-400">Customer</p>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <Globe className="w-5 h-5 text-gray-400" />
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
+                  <Globe className="w-5 h-5 text-gray-400 dark:text-slate-500" />
                   <div>
-                    <p className="text-sm text-gray-600">Country</p>
-                    <p className="font-medium text-gray-900">{viewingCustomer.country || 'India'}</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-400">Country</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{viewingCustomer.country || 'India'}</p>
                   </div>
 
                  
                 </div>
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <Mail className="w-5 h-5 text-gray-400" />
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
+                  <Mail className="w-5 h-5 text-gray-400 dark:text-slate-500" />
                   <div>
-                    <p className="text-sm text-gray-600">Email</p>
-                    <p className="font-medium text-gray-900">{viewingCustomer.email || '—'}</p>
+                    <p className="text-sm text-gray-600 dark:text-slate-400">Email</p>
+                    <p className="font-medium text-gray-900 dark:text-white">{viewingCustomer.email || '—'}</p>
                   </div>
                 </div>
                 {viewingCustomer.address && (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                    <MapPin className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-600">Address Details</p>
-                      <p className="font-medium text-gray-900">
-                        {viewingCustomer.address}
-                        {(viewingCustomer.state || viewingCustomer.pincode) && ', '}
-                        {viewingCustomer.state} {viewingCustomer.pincode}
-                      </p>
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
+                    <MapPin className="w-5 h-5 text-gray-400 dark:text-slate-500" />
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-600 dark:text-slate-400">Address Details</p>
+                      <div className="font-medium text-gray-900 dark:text-white space-y-1">
+                        {viewingCustomer.address.split(' | ').map((addr, idx) => (
+                          <div key={idx} className={idx > 0 ? "pt-1 border-t border-gray-100 dark:border-slate-700 mt-1" : ""}>
+                            <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-tighter mb-0.5">Address {idx + 1}</p>
+                            {addr}
+                          </div>
+                        ))}
+                        <p className="pt-2 text-xs text-gray-500">
+                          State: {viewingCustomer.state} | PIN: {viewingCustomer.pincode}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 )}
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <Calendar className="w-5 h-5 text-gray-400" />
+                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-800/50 rounded-xl">
+                  <Calendar className="w-5 h-5 text-gray-400 dark:text-slate-500" />
                   <div>
-                    <p className="text-sm text-gray-600">Created At</p>
-                    <p className="font-medium text-gray-900">
+                    <p className="text-sm text-gray-600 dark:text-slate-400">Created At</p>
+                    <p className="font-medium text-gray-900 dark:text-white">
                       {viewingCustomer.createdAt || viewingCustomer.created_at
                         ? new Date(viewingCustomer.createdAt || viewingCustomer.created_at).toLocaleString()
                         : 'Not available'}
@@ -557,9 +611,38 @@ const CustomerPage = () => {
               <div className="pt-4">
                 <button
                   onClick={() => setViewingCustomer(null)}
-                  className="w-full bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold"
+                  className="w-full bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-all duration-300 font-semibold cursor-pointer"
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {customerToDelete && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60]">
+          <div className="bg-white dark:bg-[#151521] rounded-2xl p-6 w-full max-w-sm m-4 border dark:border-slate-800 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
+                <Trash2 className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Delete Customer</h3>
+              <p className="text-gray-500 dark:text-slate-400 mb-6 text-sm">Are you sure you want to delete this customer? This action cannot be undone.</p>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setCustomerToDelete(null)}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => { deleteCustomer(customerToDelete); setCustomerToDelete(null); }}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 shadow-lg shadow-red-500/30 transition-colors"
+                >
+                  Delete
                 </button>
               </div>
             </div>

@@ -24,6 +24,148 @@ export const DataProvider = ({ children }) => {
   const [registeredUsers, setRegisteredUsers] = useState([]);
   const [notifications, setNotifications]     = useState([]);
   const [stockLogs, setStockLogs]             = useState([]);
+  const [language, setLanguage]               = useState(() => localStorage.getItem('language') || 'en');
+
+  const translations = {
+    en: {
+      settings: 'Settings',
+      dashboard: 'Dashboard',
+      customers: 'Customers',
+      divisions: 'Divisions',
+      products: 'Products',
+      transactions: 'Transactions',
+      stocks: 'Stocks',
+      users: 'Users',
+      calendar: 'Calendar',
+      help: 'Help',
+      logout: 'Logout',
+      profile_info: 'Profile Information',
+      appearance: 'Appearance & Theme Color',
+      zoom: 'Zoom & Magnifier',
+      notifs: 'Notifications',
+      lang_region: 'Language & Region',
+      sys_info: 'System Info',
+      save: 'Save Settings',
+      saved: 'Saved!',
+      welcome: 'Welcome'
+    },
+    ta: {
+      settings: 'அமைப்புகள்',
+      dashboard: 'டாஷ்போர்டு',
+      customers: 'வாடிக்கையாளர்கள்',
+      divisions: 'பிரிவுகள்',
+      products: 'தயாரிப்புகள்',
+      transactions: 'பரிவர்த்தனைகள்',
+      stocks: 'பங்குகள்',
+      users: 'பயனர்கள்',
+      calendar: 'நாட்காட்டி',
+      help: 'உதவி',
+      logout: 'வெளியேறு',
+      profile_info: 'சுயவிவரத் தகவல்',
+      appearance: 'தோற்றம் மற்றும் தீம் நிறம்',
+      zoom: 'பெரிதாக்குதல்',
+      notifs: 'அறிவிப்புகள்',
+      lang_region: 'மொழி மற்றும் பிராந்தியம்',
+      sys_info: 'கணினி தகவல்',
+      save: 'அமைப்புகளைச் சேமி',
+      saved: 'சேமிக்கப்பட்டது!',
+      welcome: 'வரவேற்கிறோம்'
+    },
+    hi: {
+      settings: 'सेटिंग्स',
+      dashboard: 'डैशबोर्ड',
+      customers: 'ग्राहक',
+      divisions: 'प्रभाग',
+      products: 'उत्पाद',
+      transactions: 'लेनदेन',
+      stocks: 'स्टॉक',
+      users: 'उपयोगकर्ता',
+      calendar: 'कैलेंडर',
+      help: 'मदद',
+      logout: 'लॉग आउट',
+      profile_info: 'प्रोफ़ाइल जानकारी',
+      appearance: 'दिखावट और थीम रंग',
+      zoom: 'ज़ूम और मैग्निफायर',
+      notifs: 'सूचनाएं',
+      lang_region: 'भाषा और क्षेत्र',
+      sys_info: 'सिस्टम जानकारी',
+      save: 'सेटिंग्स सहेजें',
+      saved: 'सहेजा गया!',
+      welcome: 'स्वागत है'
+    },
+    te: {
+      settings: 'సెట్టింగులు',
+      dashboard: 'డాష్‌బోర్డ్',
+      customers: 'కస్టమర్లు',
+      divisions: 'విభాగాలు',
+      products: 'ఉత్పత్తులు',
+      transactions: 'లావాదేవీలు',
+      stocks: 'స్టాక్స్',
+      users: 'వినియోగదారులు',
+      calendar: 'క్యాలెండర్',
+      help: 'సహాయం',
+      logout: 'లాగ్ అవుట్',
+      profile_info: 'ప్రొఫైల్ సమాచారం',
+      appearance: 'రూపం & థీమ్ రంగు',
+      zoom: 'జూమ్ & మాగ్నిఫైయర్',
+      notifs: 'నోటిఫికేషన్లు',
+      lang_region: 'భాష & ప్రాంతం',
+      sys_info: 'సిస్టమ్ సమాచారం',
+      save: 'సెట్టింగ్‌లను సేవ్ చేయి',
+      saved: 'సేవ్ చేయబడింది!',
+      welcome: 'స్వాగతం'
+    },
+    kn: {
+      settings: 'ಸೆಟ್ಟಿಂಗ್‌ಗಳು',
+      dashboard: 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+      customers: 'ಗ್ರಾಹಕರು',
+      divisions: 'ವಿಭಾಗಗಳು',
+      products: 'ಉತ್ಪನ್ನಗಳು',
+      transactions: 'ವಹಿವಾಟುಗಳು',
+      stocks: 'ಸ್ಟಾಕ್‌ಗಳು',
+      users: 'ಬಳಕೆದಾರರು',
+      calendar: 'ಕ್ಯಾಲೆಂಡರ್',
+      help: 'ಸಹಾಯ',
+      logout: 'ಲಾಗ್ ಔಟ್',
+      profile_info: 'ಪ್ರೊಫೈಲ್ ಮಾಹಿತಿ',
+      appearance: 'ನೋಟ ಮತ್ತು ಥೀಮ್ ಬಣ್ಣ',
+      zoom: 'ಜೂಮ್ ಮತ್ತು ಮ್ಯಾಗ್ನಿಫೈಯರ್',
+      notifs: 'ಅಧಿಸೂಚನೆಗಳು',
+      lang_region: 'ಭಾಷೆ ಮತ್ತು ಪ್ರದೇಶ',
+      sys_info: 'ಸಿಸ್ಟಮ್ ಮಾಹಿತಿ',
+      save: 'ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ಉಳಿಸಿ',
+      saved: 'ಉಳಿಸಲಾಗಿದೆ!',
+      welcome: 'ಸ್ವಾಗತ'
+    },
+    ml: {
+      settings: 'ക്രമീകരണങ്ങൾ',
+      dashboard: 'ഡാഷ്ബോർഡ്',
+      customers: 'ഉപഭോക്താക്കൾ',
+      divisions: 'ഡിവിഷനുകൾ',
+      products: 'ഉൽപ്പന്നങ്ങൾ',
+      transactions: 'ഇടപാടുകൾ',
+      stocks: 'സ്റ്റോക്കുകൾ',
+      users: 'ഉപയോക്താക്കൾ',
+      calendar: 'കലണ്ടർ',
+      help: 'സഹായം',
+      logout: 'ലോഗ് ഔട്ട്',
+      profile_info: 'പ്രൊഫൈൽ വിവരങ്ങൾ',
+      appearance: 'രൂപവും തീം നിറവും',
+      zoom: 'സൂം & മാഗ്നിഫയർ',
+      notifs: 'അറിയിപ്പുകൾ',
+      lang_region: 'ഭാഷയും പ്രദേശവും',
+      sys_info: 'സിസ്റ്റം വിവരങ്ങൾ',
+      save: 'ക്രമീകരണങ്ങൾ സംരക്ഷിക്കുക',
+      saved: 'സംരക്ഷിച്ചു!',
+      welcome: 'സ്വാഗതം'
+    }
+  };
+
+  const t = (key) => translations[language]?.[key] || translations['en'][key] || key;
+
+  useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
 
   // Abort Controllers for fetch operations
   const abortControllers = React.useRef({
@@ -514,6 +656,32 @@ export const DataProvider = ({ children }) => {
     }
   };
 
+  const updateOrderStatus = async (id, status) => {
+    try {
+      const res = await updateOrdStatus(id, status);
+      const applyUpdate = (list) => list.map(o => String(o.id) === String(id) ? { ...o, orderStatus: status } : o);
+      setOrders(prev => applyUpdate(prev));
+      setOrderPageData(prev => ({ ...prev, content: applyUpdate(prev.content) }));
+      addNotification(`Order status for #ORD-${String(id).padStart(4, '0')} updated to ${status}`);
+      return res;
+    } catch (err) {
+      console.error('Failed to update order status:', err);
+    }
+  };
+
+  const updateOrderPaymentStatus = async (id, status) => {
+    try {
+      const res = await updateOrdPaymentStatus(id, status);
+      const applyUpdate = (list) => list.map(o => String(o.id) === String(id) ? { ...o, paymentStatus: status } : o);
+      setOrders(prev => applyUpdate(prev));
+      setOrderPageData(prev => ({ ...prev, content: applyUpdate(prev.content) }));
+      addNotification(`Payment status for #ORD-${String(id).padStart(4, '0')} updated to ${status}`);
+      return res;
+    } catch (err) {
+      console.error('Failed to update payment status:', err);
+    }
+  };
+
   // ── Stock ──────────────────────────────────────────────────────────────────
   const createStock = async (data) => {
     const product = products.find(p => String(p.id) === String(data.productId));
@@ -670,9 +838,10 @@ export const DataProvider = ({ children }) => {
     addCustomer, updateCustomer, deleteCustomer,
     addCategory, updateCategory, deleteCategory,
     addProduct, updateProduct, deleteProduct,
-    addOrder, updateOrder, deleteOrder,
+    addOrder, updateOrder, deleteOrder, updateOrderStatus, updateOrderPaymentStatus,
     registerUser, updateUser, deleteUser,
     createStock, updateStock, deleteStock, stockLogs,
+    language, setLanguage, t
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

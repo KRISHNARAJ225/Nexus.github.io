@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip,
@@ -18,7 +19,22 @@ const PIE_COLORS = { 'E-Wallet': '#1B2559', 'Cash': '#828DF8', 'QRIS': '#E0E5F2'
 
 const Dashboard = () => {
   const { customers, orders, products, customerPageData, orderPageData } = useData();
+  const navigate = useNavigate();
   const [revenueView, setRevenueView]   = useState('weekly');
+  const [year2, setYear2] = useState(CY);
+  const year1 = year2 - 1;
+  const [openDropdown2, setOpenDropdown2] = useState(false);
+  const dropdown2Ref = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdown2Ref.current && !dropdown2Ref.current.contains(event.target)) {
+        setOpenDropdown2(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // ── Stat cards ─────────────────────────────────────────────────────────────
   const totalCustomers    = customerPageData.totalElements || customers.length;
@@ -28,13 +44,13 @@ const Dashboard = () => {
 
   // ── Sales Performance area chart — real order amounts grouped by month/year ─
   const salesMap = {};
-  MONTHS.forEach(m => { salesMap[m] = { name: m, [PY]: 0, [CY]: 0 }; });
+  MONTHS.forEach(m => { salesMap[m] = { month: m, [year1]: 0, [year2]: 0 }; });
   orders.forEach(o => {
     const d = new Date(o.orderDate || o.createdAt);
     if (isNaN(d)) return;
     const yr = d.getFullYear();
     const mo = MONTHS[d.getMonth()];
-    if (yr === CY || yr === PY) salesMap[mo][yr] = (salesMap[mo][yr] || 0) + (Number(o.totalAmount) || 0);
+    if (yr === year2 || yr === year1) salesMap[mo][yr] = (salesMap[mo][yr] || 0) + (Number(o.totalAmount) || 0);
   });
   const salesPerformanceData = Object.values(salesMap);
 
@@ -100,44 +116,44 @@ const Dashboard = () => {
     <div className="space-y-6">
       {/* 1. Top Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 flex items-center justify-between hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20 hover:border-blue-200 transition-all duration-300 group cursor-pointer">
+        <div className="bg-white dark:bg-[#151521] rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 dark:border-slate-800 flex items-center justify-between hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20 hover:border-blue-200 transition-all duration-300 group cursor-pointer">
           <div>
-            <p className="text-xs font-semibold text-slate-400 mb-1 group-hover:text-blue-500 transition-colors">Total Customers</p>
-            <h3 className="text-2xl font-bold text-slate-800 tracking-tight group-hover:text-blue-600 transition-colors">{totalCustomers.toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1 group-hover:text-blue-500 transition-colors">Total Customers</p>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight group-hover:text-blue-600 transition-colors">{totalCustomers.toLocaleString()}</h3>
           </div>
-          <div className="w-12 h-12 bg-[#F4F7FE] rounded-full flex items-center justify-center text-[#4318FF] group-hover:scale-110 group-hover:bg-[#4318FF] group-hover:text-white transition-all duration-300">
+          <div className="w-12 h-12 bg-[#F4F7FE] dark:bg-blue-900/20 rounded-full flex items-center justify-center text-[#4318FF] group-hover:scale-110 group-hover:bg-[#4318FF] group-hover:text-white transition-all duration-300">
             <Users className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 flex items-center justify-between hover:-translate-y-1 hover:shadow-lg hover:shadow-pink-500/20 hover:border-pink-200 transition-all duration-300 group cursor-pointer">
+        <div className="bg-white dark:bg-[#151521] rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 dark:border-slate-800 flex items-center justify-between hover:-translate-y-1 hover:shadow-lg hover:shadow-pink-500/20 hover:border-pink-200 transition-all duration-300 group cursor-pointer">
           <div>
-            <p className="text-xs font-semibold text-slate-400 mb-1 group-hover:text-pink-500 transition-colors">Total Transaction</p>
-            <h3 className="text-2xl font-bold text-slate-800 tracking-tight group-hover:text-pink-600 transition-colors">{totalTransactions.toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1 group-hover:text-pink-500 transition-colors">Total Transaction</p>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight group-hover:text-pink-600 transition-colors">{totalTransactions.toLocaleString()}</h3>
           </div>
-          <div className="w-12 h-12 bg-[#FFF3F8] rounded-full flex items-center justify-center text-[#FF2E93] group-hover:scale-110 group-hover:bg-[#FF2E93] group-hover:text-white transition-all duration-300">
+          <div className="w-12 h-12 bg-[#FFF3F8] dark:bg-pink-900/20 rounded-full flex items-center justify-center text-[#FF2E93] group-hover:scale-110 group-hover:bg-[#FF2E93] group-hover:text-white transition-all duration-300">
             <ReceiptText className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 flex items-center justify-between hover:-translate-y-1 hover:shadow-lg hover:shadow-orange-500/20 hover:border-orange-200 transition-all duration-300 group cursor-pointer">
+        <div className="bg-white dark:bg-[#151521] rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 dark:border-slate-800 flex items-center justify-between hover:-translate-y-1 hover:shadow-lg hover:shadow-orange-500/20 hover:border-orange-200 transition-all duration-300 group cursor-pointer">
           <div>
-            <p className="text-xs font-semibold text-slate-400 mb-1 group-hover:text-orange-500 transition-colors">Total Sales</p>
-            <h3 className="text-2xl font-bold text-slate-800 tracking-tight group-hover:text-orange-500 transition-colors">{totalSales.toLocaleString()}</h3>
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1 group-hover:text-orange-500 transition-colors">Total Sales</p>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight group-hover:text-orange-500 transition-colors">{totalSales.toLocaleString()}</h3>
           </div>
-          <div className="w-12 h-12 bg-[#FFF6EE] rounded-full flex items-center justify-center text-[#FF9E4A] group-hover:scale-110 group-hover:bg-[#FF9E4A] group-hover:text-white transition-all duration-300">
+          <div className="w-12 h-12 bg-[#FFF6EE] dark:bg-orange-900/20 rounded-full flex items-center justify-center text-[#FF9E4A] group-hover:scale-110 group-hover:bg-[#FF9E4A] group-hover:text-white transition-all duration-300">
             <Briefcase className="w-6 h-6" />
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 flex items-center justify-between hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/20 hover:border-emerald-200 transition-all duration-300 group cursor-pointer">
+        <div className="bg-white dark:bg-[#151521] rounded-2xl p-6 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 dark:border-slate-800 flex items-center justify-between hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/20 hover:border-emerald-200 transition-all duration-300 group cursor-pointer">
           <div>
-            <p className="text-xs font-semibold text-slate-400 mb-1 group-hover:text-emerald-500 transition-colors">Total Income</p>
-            <h3 className="text-2xl font-bold text-slate-800 tracking-tight group-hover:text-emerald-600 transition-colors">
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1 group-hover:text-emerald-500 transition-colors">Total Income</p>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight group-hover:text-emerald-600 transition-colors">
               $ {totalIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </h3>
           </div>
-          <div className="w-12 h-12 bg-[#E1FDE5] rounded-full flex items-center justify-center text-[#05CD99] group-hover:scale-110 group-hover:bg-[#05CD99] group-hover:text-white transition-all duration-300">
+          <div className="w-12 h-12 bg-[#E1FDE5] dark:bg-emerald-900/20 rounded-full flex items-center justify-center text-[#05CD99] group-hover:scale-110 group-hover:bg-[#05CD99] group-hover:text-white transition-all duration-300">
             <DollarSign className="w-6 h-6" />
           </div>
         </div>
@@ -146,22 +162,28 @@ const Dashboard = () => {
       {/* 2. Middle Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sales Performance Area Chart */}
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 relative">
+        <div className="lg:col-span-2 bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 dark:border-slate-800 relative">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <h3 className="text-lg font-bold text-slate-800">Sales Performance</h3>
-              <p className="text-xs font-medium text-slate-400 mt-1">See how your sales grow month by month in {PY} and {CY}</p>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Sales Performance</h3>
+              <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">See how your sales grow month by month in {year1} and {year2}</p>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200">
-                <div className="w-2 h-2 rounded-full bg-[#1B2559]"></div>
-                <span className="text-xs font-bold text-slate-700">{PY}</span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200">
-                <div className="w-2 h-2 rounded-full bg-[#05CD99]"></div>
-                <span className="text-xs font-bold text-slate-700">{CY}</span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
+              <div ref={dropdown2Ref} className="relative">
+                <button onClick={() => setOpenDropdown2(!openDropdown2)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                  <div className="w-2 h-2 rounded-full bg-[#05CD99]"></div>
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Compare: {year2} vs {year1}</span>
+                  <ChevronDown className="w-3 h-3 text-slate-400" />
+                </button>
+                {openDropdown2 && (
+                  <div className="absolute top-full right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-lg z-10 min-w-[120px]">
+                    {[2024, 2025, 2026].map(y => (
+                      <div key={y} onClick={() => { setYear2(y); setOpenDropdown2(false); }} className="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer">
+                        {y} vs {y - 1}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <button className="text-slate-400 ml-2"><MoreHorizontal className="w-5 h-5" /></button>
             </div>
@@ -180,19 +202,19 @@ const Dashboard = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }} dy={10} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }} dx={-10} />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Area type="monotone" dataKey={String(CY)} stroke="#05CD99" strokeWidth={3} fillOpacity={1} fill="url(#colorCY)" />
-                <Area type="monotone" dataKey={String(PY)} stroke="#1B2559" strokeWidth={3} fillOpacity={1} fill="url(#colorPY)" />
+                <Area type="monotone" dataKey={String(year2)} stroke="#05CD99" strokeWidth={3} fillOpacity={1} fill="url(#colorCY)" />
+                <Area type="monotone" dataKey={String(year1)} stroke="#1B2559" strokeWidth={3} fillOpacity={1} fill="url(#colorPY)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="lg:col-span-1 bg-white p-6 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 flex flex-col">
+        <div className="lg:col-span-1 bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 dark:border-slate-800 flex flex-col">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-slate-800">KPIS Overview</h3>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white">KPIS Overview</h3>
             <button className="text-slate-400"><MoreHorizontal className="w-5 h-5" /></button>
           </div>
           <div className="flex-1 flex flex-col items-center justify-center relative">
@@ -206,19 +228,19 @@ const Dashboard = () => {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                <p className="text-2xl font-bold text-slate-800 tracking-tight">{totalTransactions.toLocaleString()}</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Total Items</p>
+                <p className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">{totalTransactions.toLocaleString()}</p>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">Total Items</p>
               </div>
               {/* Dynamic Percent Labels */}
-              <div className="absolute top-[25%] left-[10%] bg-white px-2 py-1 rounded text-[10px] font-bold text-slate-600 shadow-sm border border-slate-100">{pieData[0]?.percent}%</div>
-              <div className="absolute top-[20%] right-[15%] bg-white px-2 py-1 rounded text-[10px] font-bold text-slate-600 shadow-sm border border-slate-100">{pieData[1]?.percent}%</div>
-              <div className="absolute bottom-[35%] right-[10%] bg-white px-2 py-1 rounded text-[10px] font-bold text-slate-600 shadow-sm border border-slate-100">{pieData[2]?.percent}%</div>
+              <div className="absolute top-[25%] left-[10%] bg-white dark:bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 shadow-sm border border-slate-100 dark:border-slate-700">{pieData[0]?.percent}%</div>
+              <div className="absolute top-[20%] right-[15%] bg-white dark:bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 shadow-sm border border-slate-100 dark:border-slate-700">{pieData[1]?.percent}%</div>
+              <div className="absolute bottom-[35%] right-[10%] bg-white dark:bg-slate-800 px-2 py-1 rounded text-[10px] font-bold text-slate-600 dark:text-slate-300 shadow-sm border border-slate-100 dark:border-slate-700">{pieData[2]?.percent}%</div>
             </div>
             <div className="grid grid-cols-2 gap-x-6 gap-y-3 mt-6 w-full px-4">
               {pieData.map((p, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <div className="w-3 h-1.5 rounded-full" style={{ backgroundColor: p.color }}></div>
-                  <span className="text-xs font-semibold text-slate-600">{p.name}</span>
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{p.name}</span>
                 </div>
               ))}
             </div>
@@ -229,13 +251,13 @@ const Dashboard = () => {
       {/* 3. Bottom Row */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Revenue Performance Bar Chart */}
-        <div className="lg:col-span-5 bg-white p-6 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50">
+        <div className="lg:col-span-5 bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 dark:border-slate-800">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-lg font-bold text-slate-800">Revenue Performance</h3>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Revenue Performance</h3>
               <div className="flex items-center gap-4 mt-2">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-[#E0E5F2]"></div>
+                  <div className="w-2 h-2 rounded-full bg-[#E0E5F2] dark:bg-slate-700"></div>
                   <span className="text-xs font-medium text-slate-400">Target Revenue</span>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -247,7 +269,7 @@ const Dashboard = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => setRevenueView(v => v === 'weekly' ? 'monthly' : 'weekly')}
-                className="flex items-center gap-2 text-sm font-bold text-slate-800 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-lg transition-colors"
+                className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 px-3 py-1.5 rounded-lg transition-colors"
               >
                 {revenueView === 'weekly' ? 'Weekly' : 'Monthly'} <ChevronDown className="w-4 h-4 ml-1" />
               </button>
@@ -271,23 +293,23 @@ const Dashboard = () => {
         </div>
 
         {/* Top Transaction Table */}
-        <div className="lg:col-span-7 bg-white p-6 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50">
+        <div className="lg:col-span-7 bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] border border-slate-100/50 dark:border-slate-800">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <h3 className="text-lg font-bold text-slate-800">Top Transaction</h3>
-              <p className="text-xs font-medium text-slate-400 mt-1">Highlights of the highest transactions made this week</p>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Top Transaction</h3>
+              <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">Highlights of the highest transactions made this week</p>
             </div>
-            <button className="text-sm font-bold text-[#4318FF] hover:underline">See All</button>
+            <button onClick={() => navigate('/orders')} className="text-sm font-bold text-[#4318FF] hover:underline cursor-pointer">See All</button>
           </div>
           <div className="overflow-x-auto mt-6">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[#f8fafc]/50">
-                  <th className="py-4 px-4 text-xs font-bold text-slate-500 rounded-l-xl">Transaction ID</th>
-                  <th className="py-4 px-4 text-xs font-bold text-slate-500">Customer ID</th>
-                  <th className="py-4 px-4 text-xs font-bold text-slate-500">Date</th>
-                  <th className="py-4 px-4 text-xs font-bold text-slate-500 text-center">Items</th>
-                  <th className="py-4 px-4 text-xs font-bold text-slate-500 rounded-r-xl">Purchase</th>
+                <tr className="bg-[#f8fafc]/50 dark:bg-slate-800/50">
+                  <th className="py-4 px-4 text-xs font-bold text-slate-500 dark:text-slate-400 rounded-l-xl">Transaction ID</th>
+                  <th className="py-4 px-4 text-xs font-bold text-slate-500 dark:text-slate-400">Customer ID</th>
+                  <th className="py-4 px-4 text-xs font-bold text-slate-500 dark:text-slate-400">Date</th>
+                  <th className="py-4 px-4 text-xs font-bold text-slate-500 dark:text-slate-400 text-center">Items</th>
+                  <th className="py-4 px-4 text-xs font-bold text-slate-500 dark:text-slate-400 rounded-r-xl">Purchase</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
@@ -295,12 +317,12 @@ const Dashboard = () => {
                   <tr><td colSpan={5} className="py-8 text-center text-slate-400 text-sm">No transactions yet</td></tr>
                 ) : (
                   topTransactions.map((trx, idx) => (
-                    <tr key={idx} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                      <td className="py-3 px-4 font-bold text-slate-800">{trx.id}</td>
-                      <td className="py-3 px-4 font-bold text-slate-600">{trx.customer}</td>
-                      <td className="py-3 px-4 font-medium text-slate-500">{trx.date}</td>
-                      <td className="py-3 px-4 font-medium text-slate-500 text-center">{trx.items}</td>
-                      <td className="py-3 px-4 font-bold text-slate-800">{trx.purchase}</td>
+                    <tr key={idx} className="border-b border-slate-50 dark:border-slate-800 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-200">{trx.id}</td>
+                      <td className="py-3 px-4 font-bold text-slate-600 dark:text-slate-400">{trx.customer}</td>
+                      <td className="py-3 px-4 font-medium text-slate-500 dark:text-slate-500">{trx.date}</td>
+                      <td className="py-3 px-4 font-medium text-slate-500 dark:text-slate-500 text-center">{trx.items}</td>
+                      <td className="py-3 px-4 font-bold text-slate-800 dark:text-slate-200">{trx.purchase}</td>
                     </tr>
                   ))
                 )}

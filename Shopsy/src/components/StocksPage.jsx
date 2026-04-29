@@ -18,8 +18,17 @@ const StocksPage = () => {
     const [showStockModal, setShowStockModal] = useState(false);
     const [stockForm, setStockForm] = useState({ productId: '', quantity: 1, type: 'IN' });
     const [stockSaving, setStockSaving] = useState(false);
-    const [stockError, setStockError] = useState('');
+    const [errors, setErrors] = useState({});
     const [stockSuccess, setStockSuccess] = useState('');
+
+    const validate = (data) => {
+        const e = {};
+        if (!data.productId) e.productId = 'Product selection is required';
+        if (!data.quantity || Number(data.quantity) <= 0) e.quantity = 'Quantity must be greater than 0';
+        
+        setErrors(e);
+        return Object.keys(e).length === 0;
+    };
 
     // ── Edit Stock modal state ─────────────────────────────────────────────
     const [editingStock, setEditingStock] = useState(null);
@@ -113,10 +122,9 @@ const StocksPage = () => {
 
     // ── Handle Create Stock ─────────────────────────────────────────────────
     const handleCreateStock = async () => {
-        setStockError('');
+        setErrors({});
         setStockSuccess('');
-        if (!stockForm.productId) { setStockError('Please select a product.'); return; }
-        if (!stockForm.quantity || Number(stockForm.quantity) <= 0) { setStockError('Quantity must be greater than 0.'); return; }
+        if (!validate(stockForm)) return;
         setStockSaving(true);
         const res = await createStock({
             productId: Number(stockForm.productId),
@@ -129,7 +137,7 @@ const StocksPage = () => {
             setStockForm({ productId: '', quantity: 1, type: 'IN' });
             setTimeout(() => { setShowStockModal(false); setStockSuccess(''); }, 1500);
         } else {
-            setStockError('Failed to create stock entry. Please try again.');
+            setErrors({ general: 'Failed to create stock entry. Please try again.' });
         }
     };
 
@@ -140,12 +148,14 @@ const StocksPage = () => {
             quantity: log.quantity,
             type: log.type
         });
+        setErrors({});
         setShowEditModal(true);
     };
 
     const handleUpdateStock = async () => {
-        setStockError('');
+        setErrors({});
         setStockSuccess('');
+        if (!validate(stockForm)) return;
         setStockSaving(true);
         const res = await updateStock(editingStock.id, {
             productId: Number(stockForm.productId),
@@ -157,7 +167,7 @@ const StocksPage = () => {
             setStockSuccess('Stock entry updated successfully!');
             setTimeout(() => { setShowEditModal(false); setEditingStock(null); setStockSuccess(''); }, 1500);
         } else {
-            setStockError('Failed to update stock entry.');
+            setErrors({ general: 'Failed to update stock entry.' });
         }
     };
 
@@ -172,8 +182,8 @@ const StocksPage = () => {
             {/* Page Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-400">Stocks (Paid List)</h1>
-                    <p className="text-sm text-gray-400">View all successful transactions and inventory movements</p>
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Stocks (Paid List)</h1>
+                    <p className="text-sm text-gray-400 dark:text-slate-500">View all successful transactions and inventory movements</p>
                 </div>
                 <button
                     onClick={() => { setShowStockModal(true); setStockError(''); setStockSuccess(''); }}
@@ -186,35 +196,35 @@ const StocksPage = () => {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100/50 flex items-center justify-between hover:border-emerald-200 transition-all group cursor-pointer">
+                <div className="bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-sm border border-slate-100/50 dark:border-slate-800 flex items-center justify-between hover:border-emerald-200 transition-all group cursor-pointer">
                     <div>
-                        <div className="p-3 bg-emerald-50 rounded-xl group-hover:bg-emerald-600 transition-colors mb-4">
+                        <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl group-hover:bg-emerald-600 transition-colors mb-4">
                             <CreditCard className="w-6 h-6 text-emerald-600 group-hover:text-white" />
                         </div>
-                        <p className="text-xs font-semibold text-slate-400 mb-1">Total Paid Orders</p>
-                        <h3 className="text-2xl font-bold text-slate-800">{paidOrders.length}</h3>
+                        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1">Total Paid Orders</p>
+                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{paidOrders.length}</h3>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100/50 flex items-center justify-between hover:border-blue-200 transition-all group cursor-pointer">
+                <div className="bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-sm border border-slate-100/50 dark:border-slate-800 flex items-center justify-between hover:border-blue-200 transition-all group cursor-pointer">
                     <div>
-                        <div className="p-3 bg-blue-50 rounded-xl group-hover:bg-blue-600 transition-colors mb-4">
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl group-hover:bg-blue-600 transition-colors mb-4">
                             <Package className="w-6 h-6 text-blue-600 group-hover:text-white" />
                         </div>
-                        <p className="text-xs font-semibold text-slate-400 mb-1">Total Items Paid</p>
-                        <h3 className="text-2xl font-bold text-slate-800">
+                        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1">Total Items Paid</p>
+                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
                             {paidOrders.reduce((sum, o) => sum + (o.products?.reduce((pSum, p) => pSum + (p.quantity || 0), 0) || 0), 0)}
                         </h3>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100/50 flex items-center justify-between hover:border-purple-200 transition-all group cursor-pointer">
+                <div className="bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-sm border border-slate-100/50 dark:border-slate-800 flex items-center justify-between hover:border-purple-200 transition-all group cursor-pointer">
                     <div>
-                        <div className="p-3 bg-purple-50 rounded-xl group-hover:bg-purple-600 transition-colors mb-4">
+                        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl group-hover:bg-purple-600 transition-colors mb-4">
                             <ShoppingCart className="w-6 h-6 text-purple-600 group-hover:text-white" />
                         </div>
-                        <p className="text-xs font-semibold text-slate-400 mb-1">Total Revenue (Paid)</p>
-                        <h3 className="text-2xl font-bold text-slate-800">
+                        <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1">Total Revenue (Paid)</p>
+                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
                             ${paidOrders.reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </h3>
                     </div>
@@ -222,8 +232,8 @@ const StocksPage = () => {
             </div>
 
             {/* Main Table Section */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
-                <div className="p-6 border-b border-gray-50">
+            <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800 overflow-hidden">
+                <div className="p-6 border-b border-gray-50 dark:border-slate-800">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <input
@@ -234,7 +244,7 @@ const StocksPage = () => {
                                 setSearchTerm(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            className="pl-10 pr-4 py-2 bg-gray-900 border border-gray-900 text-gray-400 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-900/10 focus:border-blue-900 text-sm"
+                            className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 text-sm"
                         />
                     </div>
                 </div>
@@ -242,8 +252,8 @@ const StocksPage = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="text-gray-400 text-xs uppercase tracking-wider">
-                                <th className="px-6 py-4 font-semibold text-blue-900">Order ID</th>
+                            <tr className="text-gray-400 dark:text-slate-500 text-xs uppercase tracking-wider">
+                                <th className="px-6 py-4 font-semibold text-blue-900 dark:text-blue-400">Order ID</th>
                                 <th className="px-6 py-4 font-semibold">Customer ID</th>
                                 <th className="px-6 py-4 font-semibold">Customer Name</th>
                                 <th className="px-6 py-4 font-semibold">Product ID</th>
@@ -253,44 +263,44 @@ const StocksPage = () => {
                                 <th className="px-6 py-4 font-semibold text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="text-sm divide-y divide-gray-50">
+                        <tbody className="text-sm divide-y divide-gray-50 dark:divide-slate-800">
                             {displayedPaidOrders.map((order) => (
-                                <tr key={order.id} className="hover:bg-emerald-50/50 transition-all text-sm group cursor-pointer" onClick={() => handleViewOrder(order)}>
+                                <tr key={order.id} className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all text-sm group cursor-pointer" onClick={() => handleViewOrder(order)}>
                                     <td className="px-6 py-4">
-                                        <span className="font-mono font-bold text-blue-900">
+                                        <span className="font-mono font-bold text-blue-900 dark:text-blue-400">
                                             #ORD-{String(order.id).padStart(4, '0')}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-500 font-medium">{order.customerId || 'N/A'}</td>
+                                    <td className="px-6 py-4 text-gray-500 dark:text-slate-400 font-medium">{order.customerId || 'N/A'}</td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">
-                                            <span className="font-medium text-gray-900">{order.customerName}</span>
-                                            <span className="text-xs text-gray-400">{order.customerEmail}</span>
+                                            <span className="font-medium text-gray-900 dark:text-white">{order.customerName}</span>
+                                            <span className="text-xs text-gray-400 dark:text-slate-500">{order.customerEmail}</span>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 text-gray-500">{order.products?.[0]?.productId || order.productId || 'N/A'}</td>
+                                    <td className="px-6 py-4 text-gray-500 dark:text-slate-400">{order.products?.[0]?.productId || order.productId || 'N/A'}</td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">
-                                            <span className="text-gray-900">{order.orderDate?.split('T')[0]}</span>
-                                            <span className="text-xs text-gray-400">{order.orderDate?.split('T')[1]?.substring(0, 5)}</span>
+                                            <span className="text-gray-900 dark:text-slate-300">{order.orderDate?.split('T')[0]}</span>
+                                            <span className="text-xs text-gray-400 dark:text-slate-500">{order.orderDate?.split('T')[1]?.substring(0, 5)}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex flex-col">
-                                            <span className="text-gray-900 font-medium">{order.products?.[0]?.name || order.products?.[0]?.productName || 'N/A'}</span>
+                                            <span className="text-gray-900 dark:text-slate-300 font-medium">{order.products?.[0]?.name || order.products?.[0]?.productName || 'N/A'}</span>
                                             {order.products?.length > 1 && (
-                                                <span className="text-[10px] text-blue-600 font-bold uppercase">+{order.products.length - 1} more items</span>
+                                                <span className="text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase">+{order.products.length - 1} more items</span>
                                             )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="font-bold text-gray-900">${(order.totalAmount || 0).toFixed(2)}</span>
+                                        <span className="font-bold text-gray-900 dark:text-white">${(order.totalAmount || 0).toFixed(2)}</span>
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleViewOrder(order); }}
-                                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                className="p-2 text-gray-400 dark:text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
                                             >
                                                 <Eye className="w-5 h-5" />
                                             </button>
@@ -316,24 +326,26 @@ const StocksPage = () => {
                 />
             </div>
 
+
+<br />
             {/* ── Stock Movements Table ─────────────────────────────────────────── */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
-                <div className="p-5 border-b border-gray-50 flex items-center justify-between">
+            <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800 overflow-hidden">
+                <div className="p-5 border-b border-gray-50 dark:border-slate-800 flex items-center justify-between">
                     <div>
-                        <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+                        <h2 className="text-base font-bold text-gray-800 dark:text-white flex items-center gap-2">
                             <ArrowDownCircle className="w-4 h-4 text-emerald-500" />
                             Stock Movements
                         </h2>
-                        <p className="text-xs text-gray-400 mt-0.5">All manual stock IN / OUT entries</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">All manual stock IN / OUT entries</p>
                     </div>
-                    <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
+                    <span className="text-xs font-semibold text-gray-400 dark:text-slate-500 bg-gray-100 dark:bg-slate-800 px-2 py-1 rounded-full">
                         {stockLogs.length} entries
                     </span>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="text-gray-400 text-xs uppercase tracking-wider border-b border-gray-50">
+                            <tr className="text-gray-400 dark:text-slate-500 text-xs uppercase tracking-wider border-b border-gray-50 dark:border-slate-800">
                                 <th className="px-6 py-3 font-semibold">#</th>
                                 <th className="px-6 py-3 font-semibold">Product</th>
                                 <th className="px-6 py-3 font-semibold">Product ID</th>
@@ -343,7 +355,7 @@ const StocksPage = () => {
                                 <th className="px-6 py-3 font-semibold text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="text-sm divide-y divide-gray-50">
+                        <tbody className="text-sm divide-y divide-gray-50 dark:divide-slate-800">
                             {stockLogs.length === 0 && (
                                 <tr>
                                     <td colSpan="6" className="px-6 py-10 text-center text-gray-400 italic">
@@ -352,12 +364,12 @@ const StocksPage = () => {
                                 </tr>
                             )}
                             {stockLogs.map((log, idx) => (
-                                <tr key={log.id} className="hover:bg-gray-50/50 transition-all">
-                                    <td className="px-6 py-3 text-gray-400 text-xs">{idx + 1}</td>
+                                <tr key={log.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-800 transition-all">
+                                    <td className="px-6 py-3 text-gray-400 dark:text-slate-500 text-xs">{idx + 1}</td>
                                     <td className="px-6 py-3">
-                                        <span className="font-medium text-gray-900">{log.productName}</span>
+                                        <span className="font-medium text-gray-900 dark:text-white">{log.productName}</span>
                                     </td>
-                                    <td className="px-6 py-3 text-gray-500 text-xs font-mono">{log.productId}</td>
+                                    <td className="px-6 py-3 text-gray-500 dark:text-slate-400 text-xs font-mono">{log.productId}</td>
                                     <td className="px-6 py-3">
                                         <span className={`font-bold ${ log.type === 'IN' ? 'text-emerald-600' : 'text-red-500' }`}>
                                             {log.type === 'IN' ? '+' : '-'}{log.quantity}
@@ -374,17 +386,17 @@ const StocksPage = () => {
                                             {log.type}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-3 text-gray-500 text-xs">
+                                    <td className="px-6 py-3 text-gray-500 dark:text-slate-500 text-xs">
                                         {log.createdAt
                                             ? new Date(log.createdAt).toLocaleString()
                                             : '—'}
                                     </td>
                                     <td className="px-6 py-3 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button onClick={() => handleEditStock(log)} className="p-1.5 text-gray-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                                            <button onClick={() => handleEditStock(log)} className="p-1.5 text-gray-400 dark:text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors">
                                                 <Edit2 className="w-4 h-4" />
                                             </button>
-                                            <button onClick={() => handleDeleteStock(log.id)} className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+                                            <button onClick={() => handleDeleteStock(log.id)} className="p-1.5 text-gray-400 dark:text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
@@ -399,9 +411,9 @@ const StocksPage = () => {
             {/* View Order Modal */}
             {viewingOrder && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 overflow-y-auto">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-2xl m-4">
+                    <div className="bg-white dark:bg-[#151521] rounded-lg p-6 w-full max-w-2xl m-4 border dark:border-slate-800">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-xl font-bold text-gray-800">Transaction Details</h2>
+                            <h2 className="text-xl font-bold text-gray-800 dark:text-white">Transaction Details</h2>
                             <button onClick={() => { setViewingOrder(null); setQrOrderDetails(null); }} className="text-gray-400 hover:text-gray-600">
                                 <X className="w-6 h-6" />
                             </button>
@@ -409,76 +421,76 @@ const StocksPage = () => {
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Order ID</label>
-                                    <p className="text-gray-900 font-mono font-bold text-blue-900">#ORD-{String(viewingOrder.id).padStart(4, '0')}</p>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Order ID</label>
+                                    <p className="text-gray-900 dark:text-blue-400 font-mono font-bold text-blue-900">#ORD-{String(viewingOrder.id).padStart(4, '0')}</p>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Order Date</label>
-                                    <p className="text-gray-900">{viewingOrder.orderDate}</p>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Order Date</label>
+                                    <p className="text-gray-900 dark:text-slate-300">{viewingOrder.orderDate}</p>
                                 </div>
                             </div>
 
-                            <div className="border-t pt-4">
-                                <h3 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                            <div className="border-t dark:border-slate-800 pt-4">
+                                <h3 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                                     <User className="w-4 h-4" />
                                     Customer Information
                                 </h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                                        <p className="text-gray-900">{viewingOrder.customerName}</p>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Name</label>
+                                        <p className="text-gray-900 dark:text-slate-300">{viewingOrder.customerName}</p>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                        <p className="text-gray-900">{viewingOrder.customerEmail}</p>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Email</label>
+                                        <p className="text-gray-900 dark:text-slate-300">{viewingOrder.customerEmail}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="border-t pt-4">
-                                <h3 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                            <div className="border-t dark:border-slate-800 pt-4">
+                                <h3 className="font-medium text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                                     <Package className="w-4 h-4" />
                                     Products
                                 </h3>
                                 <div className="space-y-2">
                                     {viewingOrder.products.map((product, index) => (
-                                        <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                        <div key={index} className="flex justify-between items-center p-2 bg-gray-50 dark:bg-slate-900 rounded">
                                             <div>
-                                                <p className="font-medium">{product.name || product.productName}</p>
-                                                <p className="text-sm text-gray-600">Qty: {product.quantity} @ ${product.price}</p>
+                                                <p className="font-medium dark:text-slate-200">{product.name || product.productName}</p>
+                                                <p className="text-sm text-gray-600 dark:text-slate-400">Qty: {product.quantity} @ ${product.price}</p>
                                             </div>
-                                            <p className="font-medium">${((product.price || 0) * (product.quantity || 0)).toFixed(2)}</p>
+                                            <p className="font-medium dark:text-slate-200">${((product.price || 0) * (product.quantity || 0)).toFixed(2)}</p>
                                         </div>
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="border-t pt-4 space-y-2">
+                            <div className="border-t dark:border-slate-800 pt-4 space-y-2">
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-gray-600">Subtotal</span>
-                                    <span className="font-medium text-gray-900">
+                                    <span className="text-gray-600 dark:text-slate-400">Subtotal</span>
+                                    <span className="font-medium text-gray-900 dark:text-slate-200">
                                         ${viewingOrder.products.reduce((sum, p) => sum + ((p.price || 0) * (p.quantity || 0)), 0).toFixed(2)}
                                     </span>
                                 </div>
                                 {parseFloat(viewingOrder.gst || 0) > 0 && (
                                     <div className="flex justify-between items-center text-sm">
-                                        <span className="text-gray-600">GST</span>
-                                        <span className="font-medium text-gray-900">${parseFloat(viewingOrder.gst).toFixed(2)}</span>
+                                        <span className="text-gray-600 dark:text-slate-400">GST</span>
+                                        <span className="font-medium text-gray-900 dark:text-slate-200">${parseFloat(viewingOrder.gst).toFixed(2)}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between items-center pt-2 border-t mt-2">
-                                    <h3 className="font-medium text-gray-900">Total Amount</h3>
-                                    <p className="text-xl font-bold text-gray-900">${viewingOrder.totalAmount?.toFixed(2)}</p>
+                                <div className="flex justify-between items-center pt-2 border-t dark:border-slate-800 mt-2">
+                                    <h3 className="font-medium text-gray-900 dark:text-white">Total Amount</h3>
+                                    <p className="text-xl font-bold text-gray-900 dark:text-white">${viewingOrder.totalAmount?.toFixed(2)}</p>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Payment Status</label>
                                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-${getPaymentStatusColor(viewingOrder.paymentStatus)}-100 text-${getPaymentStatusColor(viewingOrder.paymentStatus)}-800`}>
                                             {viewingOrder.paymentStatus}
                                         </span>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Order Status</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Order Status</label>
                                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-${getOrderStatusColor(viewingOrder.orderStatus)}-100 text-${getOrderStatusColor(viewingOrder.orderStatus)}-800`}>
                                             {viewingOrder.orderStatus}
                                         </span>
@@ -487,7 +499,7 @@ const StocksPage = () => {
 
                                 {/* QR Code for SUCCESS transactions — links to receipt page */}
                                 {viewingOrder.paymentStatus === 'SUCCESS' && (
-                                    <div className="mt-6 pt-6 border-t border-dashed flex flex-col items-center gap-2 bg-slate-50 p-4 rounded-xl">
+                                    <div className="mt-6 pt-6 border-t border-dashed dark:border-slate-700 flex flex-col items-center gap-2 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl">
                                         {qrLoading ? (
                                             <div className="w-32 h-32 flex items-center justify-center">
                                                 <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
@@ -521,11 +533,11 @@ const StocksPage = () => {
             {/* ── Add Stock Modal ─────────────────────────────────────────────────── */}
             {showStockModal && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+                    <div className="bg-white dark:bg-[#151521] rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border dark:border-slate-800">
                         <div className="flex items-center justify-between mb-5">
                             <div>
-                                <h2 className="text-xl font-bold text-gray-800">Create Stock Entry</h2>
-                                <p className="text-sm text-gray-400 mt-0.5">Record an inventory IN or OUT movement</p>
+                                <h2 className="text-xl font-bold text-gray-800 dark:text-white">Create Stock Entry</h2>
+                                <p className="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Record an inventory IN or OUT movement</p>
                             </div>
                             <button onClick={() => setShowStockModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
                                 <X className="w-6 h-6" />
@@ -535,11 +547,11 @@ const StocksPage = () => {
                         <div className="space-y-4">
                             {/* Product selector */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Product <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Product <span className="text-red-500">*</span></label>
                                 <select
                                     value={stockForm.productId}
-                                    onChange={(e) => setStockForm(prev => ({ ...prev, productId: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-gray-800"
+                                    onChange={(e) => { setStockForm(prev => ({ ...prev, productId: e.target.value })); if(errors.productId) setErrors({...errors, productId: ''}); }}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-slate-800 text-gray-900 dark:text-white ${errors.productId ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-emerald-500'}`}
                                 >
                                     <option value="">Select Product</option>
                                     {(products || []).map(p => {
@@ -548,32 +560,34 @@ const StocksPage = () => {
                                         return <option key={String(pid)} value={String(pid)}>{pname} (ID: {pid})</option>;
                                     })}
                                 </select>
+                                {errors.productId && <p className="text-red-500 text-xs mt-1">{errors.productId}</p>}
                             </div>
 
                             {/* Quantity */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Quantity <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Quantity <span className="text-red-500">*</span></label>
                                 <input
                                     type="number"
                                     min="1"
                                     value={stockForm.quantity}
-                                    onChange={(e) => setStockForm(prev => ({ ...prev, quantity: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-gray-800"
+                                    onChange={(e) => { setStockForm(prev => ({ ...prev, quantity: e.target.value })); if(errors.quantity) setErrors({...errors, quantity: ''}); }}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-slate-800 text-gray-900 dark:text-white ${errors.quantity ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-emerald-500'}`}
                                     placeholder="Enter quantity"
                                 />
+                                {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
                             </div>
 
                             {/* Type dropdown */}
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Type <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Type <span className="text-red-500">*</span></label>
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         type="button"
                                         onClick={() => setStockForm(prev => ({ ...prev, type: 'IN' }))}
                                         className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 font-semibold text-sm transition-all cursor-pointer
                                             ${ stockForm.type === 'IN'
-                                                ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                                                : 'border-gray-200 text-gray-500 hover:border-emerald-300'}`}
+                                                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
+                                                : 'border-gray-200 dark:border-slate-700 text-gray-500 hover:border-emerald-300 dark:hover:border-emerald-700'}`}
                                     >
                                         <ArrowDownCircle className="w-4 h-4" /> IN (Stock In)
                                     </button>
@@ -582,8 +596,8 @@ const StocksPage = () => {
                                         onClick={() => setStockForm(prev => ({ ...prev, type: 'OUT' }))}
                                         className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border-2 font-semibold text-sm transition-all cursor-pointer
                                             ${ stockForm.type === 'OUT'
-                                                ? 'border-red-500 bg-red-50 text-red-700'
-                                                : 'border-gray-200 text-gray-500 hover:border-red-300'}`}
+                                                ? 'border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
+                                                : 'border-gray-200 dark:border-slate-700 text-gray-500 hover:border-red-300 dark:hover:border-red-700'}`}
                                     >
                                         <ArrowUpCircle className="w-4 h-4" /> OUT (Stock Out)
                                     </button>
@@ -591,8 +605,8 @@ const StocksPage = () => {
                             </div>
 
                             {/* Error / Success messages */}
-                            {stockError && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{stockError}</div>
+                            {errors.general && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{errors.general}</div>
                             )}
                             {stockSuccess && (
                                 <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-lg px-3 py-2">{stockSuccess}</div>
@@ -609,7 +623,7 @@ const StocksPage = () => {
                                 </button>
                                 <button
                                     onClick={() => setShowStockModal(false)}
-                                    className="flex-1 bg-gray-100 text-gray-800 py-2.5 rounded-lg hover:bg-gray-200 transition-colors font-semibold cursor-pointer"
+                                    className="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-white py-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors font-semibold cursor-pointer"
                                 >
                                     Cancel
                                 </button>
@@ -622,11 +636,11 @@ const StocksPage = () => {
             {/* ── Edit Stock Modal ─────────────────────────────────────────────────── */}
             {showEditModal && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl">
+                    <div className="bg-white dark:bg-[#151521] rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border dark:border-slate-800">
                         <div className="flex items-center justify-between mb-5">
                             <div>
-                                <h2 className="text-xl font-bold text-gray-800">Edit Stock Entry</h2>
-                                <p className="text-sm text-gray-400 mt-0.5">Update this inventory movement</p>
+                                <h2 className="text-xl font-bold text-gray-800 dark:text-white">Edit Stock Entry</h2>
+                                <p className="text-sm text-gray-400 dark:text-slate-500 mt-0.5">Update this inventory movement</p>
                             </div>
                             <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer">
                                 <X className="w-6 h-6" />
@@ -635,11 +649,11 @@ const StocksPage = () => {
 
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Product <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Product <span className="text-red-500">*</span></label>
                                 <select
                                     value={stockForm.productId}
-                                    onChange={(e) => setStockForm(prev => ({ ...prev, productId: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
+                                    onChange={(e) => { setStockForm(prev => ({ ...prev, productId: e.target.value })); if(errors.productId) setErrors({...errors, productId: ''}); }}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 bg-white dark:bg-slate-800 text-gray-900 dark:text-white ${errors.productId ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-blue-500'}`}
                                 >
                                     <option value="">Select Product</option>
                                     {(products || []).map(p => {
@@ -648,6 +662,7 @@ const StocksPage = () => {
                                         return <option key={String(pid)} value={String(pid)}>{pname} (ID: {pid})</option>;
                                     })}
                                 </select>
+                                {errors.productId && <p className="text-red-500 text-xs mt-1">{errors.productId}</p>}
                             </div>
 
                             <div>
@@ -656,13 +671,14 @@ const StocksPage = () => {
                                     type="number"
                                     min="1"
                                     value={stockForm.quantity}
-                                    onChange={(e) => setStockForm(prev => ({ ...prev, quantity: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800"
+                                    onChange={(e) => { setStockForm(prev => ({ ...prev, quantity: e.target.value })); if(errors.quantity) setErrors({...errors, quantity: ''}); }}
+                                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 bg-white text-gray-800 ${errors.quantity ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-blue-500'}`}
                                 />
+                                {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Type <span className="text-red-500">*</span></label>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-slate-400 mb-1">Type <span className="text-red-500">*</span></label>
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         type="button"
@@ -687,11 +703,8 @@ const StocksPage = () => {
                                 </div>
                             </div>
 
-                            {stockError && (
-                                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{stockError}</div>
-                            )}
-                            {stockSuccess && (
-                                <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-lg px-3 py-2">{stockSuccess}</div>
+                            {errors.general && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{errors.general}</div>
                             )}
 
                             <div className="flex gap-3 pt-2">
@@ -704,7 +717,7 @@ const StocksPage = () => {
                                 </button>
                                 <button
                                     onClick={() => setShowEditModal(false)}
-                                    className="flex-1 bg-gray-100 text-gray-800 py-2.5 rounded-lg hover:bg-gray-200 transition-colors font-semibold cursor-pointer"
+                                    className="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-white py-2.5 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors font-semibold cursor-pointer"
                                 >
                                     Cancel
                                 </button>

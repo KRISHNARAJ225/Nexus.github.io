@@ -11,7 +11,8 @@ const ProductPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [viewingProduct, setViewingProduct] = useState(null);
-  const [formData, setFormData] = useState({
+  const [productToDelete, setProductToDelete] = useState(null);
+  const emptyForm = {
     name: '',
     price: '',
     quantity: '',
@@ -19,8 +20,26 @@ const ProductPage = () => {
     salableStock: '',
     unsaleableStock: '',
     expiryDate: '',
-    divisionName: ''
-  });
+    divisionName: '',
+    batchCode: ''
+  };
+
+  const [formData, setFormData] = useState(emptyForm);
+  const [errors, setErrors] = useState({});
+
+  const validate = (data) => {
+    const e = {};
+    if (!data.name?.trim()) e.name = 'Product name is required';
+    if (!data.price) e.price = 'Price is required';
+    else if (parseFloat(data.price) <= 0) e.price = 'Price must be greater than 0';
+    if (!data.quantity) e.quantity = 'Quantity is required';
+    else if (parseInt(data.quantity) <= 0) e.quantity = 'Quantity must be greater than 0';
+    if (!data.uom) e.uom = 'UoM is required';
+    if (!data.divisionName) e.divisionName = 'Division is required';
+    
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,25 +54,38 @@ const ProductPage = () => {
     return (
       (product.name || '').toLowerCase().includes(s) ||
       String(product.price ?? '').includes(s) ||
-      String(product.quantity ?? '').includes(s)
+      String(product.quantity ?? '').includes(s) ||
+      (product.batchCode || '').toLowerCase().includes(s)
     );
+  }).sort((a, b) => {
+    // Sort by expiry date (nearest first)
+    if (!a.expiryDate && !b.expiryDate) {
+      const batchA = a.batchCode || '';
+      const batchB = b.batchCode || '';
+      return batchA.localeCompare(batchB);
+    }
+    if (!a.expiryDate) return 1;
+    if (!b.expiryDate) return -1;
+    return new Date(a.expiryDate) - new Date(b.expiryDate);
   });
 
   const handleAddProduct = () => {
-    if (formData.name && formData.price && formData.quantity) {
-      addProduct({
-        name: formData.name,
-        price: parseFloat(formData.price),
-        quantity: parseInt(formData.quantity),
-        uom: formData.uom,
-        saleableStock: parseInt(formData.salableStock) || 0,
-        nonSaleableStock: parseInt(formData.unsaleableStock) || 0,
-        expiryDate: formData.expiryDate,
-        divisionName: formData.divisionName
-      });
-      setFormData({ name: '', price: '', quantity: '', uom: 'kg', salableStock: '', unsaleableStock: '', expiryDate: '', division: '' });
-      setShowAddModal(false);
-    }
+    if (!validate(formData)) return;
+    
+    addProduct({
+      name: formData.name,
+      price: parseFloat(formData.price),
+      quantity: parseInt(formData.quantity),
+      uom: formData.uom,
+      saleableStock: parseInt(formData.salableStock) || 0,
+      nonSaleableStock: parseInt(formData.unsaleableStock) || 0,
+      expiryDate: formData.expiryDate,
+      divisionName: formData.divisionName,
+      batchCode: formData.batchCode
+    });
+    setFormData(emptyForm);
+    setShowAddModal(false);
+    setErrors({});
   };
 
   const handleEditProduct = (product) => {
@@ -66,11 +98,15 @@ const ProductPage = () => {
       salableStock: product.salableStock ? product.salableStock.toString() : '',
       unsaleableStock: product.unsaleableStock ? product.unsaleableStock.toString() : '',
       expiryDate: product.expiryDate || '',
-      divisionName: product.divisionName || ''
+      divisionName: product.divisionName || '',
+      batchCode: product.batchCode || ''
     });
+    setErrors({});
   };
 
   const handleUpdateProduct = () => {
+    if (!validate(formData)) return;
+
     updateProduct(editingProduct.id, {
       name: formData.name,
       price: parseFloat(formData.price),
@@ -79,14 +115,21 @@ const ProductPage = () => {
       saleableStock: parseInt(formData.salableStock) || 0,
       nonSaleableStock: parseInt(formData.unsaleableStock) || 0,
       expiryDate: formData.expiryDate,
-      divisionName: formData.divisionName
+      divisionName: formData.divisionName,
+      batchCode: formData.batchCode
     });
     setEditingProduct(null);
-    setFormData({ name: '', price: '', quantity: '', uom: 'kg', salableStock: '', unsaleableStock: '', expiryDate: '', division: '' });
+    setFormData(emptyForm);
+    setErrors({});
   };
 
   const handleDeleteProduct = (id) => {
-    deleteProduct(id);
+    setProductToDelete(id);
+  };
+
+  const confirmDeleteProduct = () => {
+    deleteProduct(productToDelete);
+    setProductToDelete(null);
   };
 
   const handleViewProduct = (product) => {
@@ -122,31 +165,30 @@ const ProductPage = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-50">
+        <div className="bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-blue-50 rounded-xl">
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
               <Package className="w-6 h-6 text-blue-600" />
             </div>
           </div>
-          <p className="text-xs font-medium text-gray-400">Total Products</p>
-          <h3 className="text-xl font-bold text-gray-900">{products.length}</h3>
+          <p className="text-xs font-medium text-gray-400 dark:text-slate-500">Total Products</p>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">{products.length}</h3>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-50">
+        <div className="bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-emerald-50 rounded-xl">
+            <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
               <DollarSign className="w-6 h-6 text-emerald-600" />
             </div>
           </div>
-          <p className="text-xs font-medium text-gray-400">Inventory Value</p>
-          <h3 className="text-xl font-bold text-gray-900">${getTotalValue().toLocaleString()}</h3>
+          <p className="text-xs font-medium text-gray-400 dark:text-slate-500">Inventory Value</p>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white">${getTotalValue().toLocaleString()}</h3>
         </div>
       </div>
 
       {/* Main Table Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
-        <div className="p-6 border-b border-gray-50 flex items-center justify-between">
+      <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800 overflow-hidden">
+        <div className="p-6 border-b border-gray-50 dark:border-slate-800 flex items-center justify-between">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -157,10 +199,10 @@ const ProductPage = () => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-10 pr-4 py-2 bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-green-900/10 focus:border-green-900 dark:text-white text-sm transition-colors"
+              className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-green-900/10 focus:border-green-900 dark:text-white text-sm transition-colors"
             />
           </div>
-          <div className="flex items-center gap-2 bg-gray-50 p-1 rounded-xl border border-gray-100">
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-800 p-1 rounded-xl border border-gray-100 dark:border-slate-700">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400 hover:text-gray-600'}`}
@@ -180,29 +222,33 @@ const ProductPage = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-gray-400 text-xs uppercase tracking-wider">
+                <tr className="text-gray-400 dark:text-slate-500 text-xs uppercase tracking-wider">
                   <th className="px-6 py-4 font-semibold">Product Name</th>
                   <th className="px-6 py-4 font-semibold">Price</th>
                   <th className="px-6 py-4 font-semibold">Stock</th>
+                  <th className="px-6 py-4 font-semibold">Batch Code</th>
+                  <th className="px-6 py-4 font-semibold">Expiry Date</th>
                   <th className="px-6 py-4 font-semibold">Status</th>
                   <th className="px-6 py-4 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="text-sm divide-y divide-gray-50">
+              <tbody className="text-sm divide-y divide-gray-50 dark:divide-slate-800">
                 {displayedProducts.map((product) => {
                   const status = getStockStatus(product.quantity);
                   return (
-                    <tr key={product.id} className="hover:bg-green-50/50 hover:outline hover:outline-2 hover:outline-green-400 hover:-translate-y-0.5 transition-all text-sm">
+                    <tr key={product.id} className="hover:bg-green-50/50 dark:hover:bg-green-900/20 hover:outline hover:outline-2 hover:outline-green-400 hover:-translate-y-0.5 transition-all text-sm">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 font-bold text-xs uppercase border border-gray-100">
+                          <div className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-slate-800 flex items-center justify-center text-gray-400 font-bold text-xs uppercase border border-gray-100 dark:border-slate-700">
                             {product.name.charAt(0)}
                           </div>
-                          <span className="font-medium text-gray-900">{product.name}</span>
+                          <span className="font-medium text-gray-900 dark:text-slate-200">{product.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-gray-500 font-medium">${product.price.toFixed(2)}</td>
-                      <td className="px-6 py-4 text-gray-500">{product.quantity}</td>
+                      <td className="px-6 py-4 text-gray-500 dark:text-slate-400 font-medium">${product.price.toFixed(2)}</td>
+                      <td className="px-6 py-4 text-gray-500 dark:text-slate-400">{product.quantity}</td>
+                      <td className="px-6 py-4 text-gray-500 dark:text-slate-400">{product.batchCode || 'N/A'}</td>
+                      <td className="px-6 py-4 text-gray-500 dark:text-slate-400">{product.expiryDate || 'N/A'}</td>
                       <td className="px-6 py-4">
                         <span className={`px-2 py-1 rounded-full bg-${status.color}-50 text-${status.color}-600 text-[10px] font-bold uppercase tracking-wider`}>
                           {status.text}
@@ -229,7 +275,7 @@ const ProductPage = () => {
             {displayedProducts.map((product) => {
               const status = getStockStatus(product.quantity);
               return (
-                <div key={product.id} className="group bg-white p-6 rounded-2xl border border-slate-100/50 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/10 hover:border-green-500/30 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                <div key={product.id} className="group bg-white dark:bg-[#151521] p-6 rounded-2xl border border-slate-100/50 dark:border-slate-800 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:-translate-y-2 hover:shadow-2xl hover:shadow-green-500/10 hover:border-green-500/30 transition-all duration-300 cursor-pointer relative overflow-hidden">
                   <div className="flex items-start justify-between mb-4">
                     <div className="p-3 bg-green-50 rounded-xl group-hover:bg-green-600 transition-colors">
                       <Package className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
@@ -241,12 +287,12 @@ const ProductPage = () => {
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-lg font-bold text-slate-800 mb-1">{product.name}</h4>
+                    <h4 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-1">{product.name}</h4>
                     <p className="text-xs text-slate-400 mb-4">{product.division || 'Uncategorized'}</p>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs text-slate-400">Price</p>
-                        <p className="text-lg font-bold text-slate-900">${product.price.toFixed(2)}</p>
+                        <p className="text-lg font-bold text-slate-900 dark:text-slate-200">${product.price.toFixed(2)}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-slate-400">Stock</p>
@@ -287,64 +333,77 @@ const ProductPage = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name
+                  Product Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                  onChange={(e) => { setFormData({ ...formData, name: e.target.value }); if(errors.name) setErrors({...errors, name: ''}); }}
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
                   placeholder="Enter product name"
                 />
+                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price
+                  Price <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                  onChange={(e) => { setFormData({ ...formData, price: e.target.value }); if(errors.price) setErrors({...errors, price: ''}); }}
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.price ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
                   placeholder="Enter price"
                 />
+                {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantity
+                  Quantity <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                  onChange={(e) => { setFormData({ ...formData, quantity: e.target.value }); if(errors.quantity) setErrors({...errors, quantity: ''}); }}
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.quantity ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
                   placeholder="Enter quantity"
                 />
+                {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    UoM
+                    UoM <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={formData.uom}
-                    onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
-                  >
+                    onChange={(e) => { setFormData({ ...formData, uom: e.target.value }); if(errors.uom) setErrors({...errors, uom: ''}); }}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.uom ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
+                 >
                     <option value="kg">kg</option>
                     <option value="ml">ml</option>
                     <option value="pcs">pcs</option>
                   </select>
+                  {errors.uom && <p className="text-red-500 text-xs mt-1">{errors.uom}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Division
+                    Division <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={formData.divisionName}
-                    onChange={(e) => setFormData({ ...formData, divisionName: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                    onChange={(e) => { 
+                      const selName = e.target.value;
+                      const selDiv = categories.find(c => c.name === selName);
+                      setFormData({ 
+                        ...formData, 
+                        divisionName: selName,
+                        batchCode: selDiv?.batchCode || formData.batchCode
+                      }); 
+                      if(errors.divisionName) setErrors({...errors, divisionName: ''}); 
+                    }}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.divisionName ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
                   >
                     <option value="">Select division...</option>
                     {categories.map(category => (
@@ -365,7 +424,7 @@ const ProductPage = () => {
                     value={formData.salableStock}
                     onChange={(e) => setFormData({ ...formData, salableStock: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
-                    placeholder="0"
+                    placeholder="0"required minLength={1}
                   />
                 </div>
                 <div>
@@ -377,7 +436,8 @@ const ProductPage = () => {
                     value={formData.unsaleableStock}
                     onChange={(e) => setFormData({ ...formData, unsaleableStock: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
-                    placeholder="0"
+                    placeholder="0" 
+                    required minLength={1}
                   />
                 </div>
               </div>
@@ -427,61 +487,74 @@ const ProductPage = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Product Name
+                  Product Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                  onChange={(e) => { setFormData({ ...formData, name: e.target.value }); if(errors.name) setErrors({...errors, name: ''}); }}
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
                 />
+                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price
+                  Price <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                  onChange={(e) => { setFormData({ ...formData, price: e.target.value }); if(errors.price) setErrors({...errors, price: ''}); }}
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.price ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
                 />
+                {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Quantity
+                  Quantity <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   value={formData.quantity}
-                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                  onChange={(e) => { setFormData({ ...formData, quantity: e.target.value }); if(errors.quantity) setErrors({...errors, quantity: ''}); }}
+                  className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.quantity ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
                 />
+                {errors.quantity && <p className="text-red-500 text-xs mt-1">{errors.quantity}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    UoM
+                    UoM <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={formData.uom}
-                    onChange={(e) => setFormData({ ...formData, uom: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                    onChange={(e) => { setFormData({ ...formData, uom: e.target.value }); if(errors.uom) setErrors({...errors, uom: ''}); }}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.uom ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
                   >
                     <option value="kg">kg</option>
                     <option value="ml">ml</option>
                     <option value="pcs">pcs</option>
                   </select>
+                  {errors.uom && <p className="text-red-500 text-xs mt-1">{errors.uom}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Division
+                    Division <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={formData.divisionName}
-                    onChange={(e) => setFormData({ ...formData, divisionName: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                    onChange={(e) => { 
+                      const selName = e.target.value;
+                      const selDiv = categories.find(c => c.name === selName);
+                      setFormData({ 
+                        ...formData, 
+                        divisionName: selName,
+                        batchCode: selDiv?.batchCode || formData.batchCode
+                      }); 
+                      if(errors.divisionName) setErrors({...errors, divisionName: ''}); 
+                    }}
+                    className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors ${errors.divisionName ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 dark:border-slate-700 focus:ring-green-500'}`}
                   >
                     <option value="">Select division...</option>
                     {categories.map(category => (
@@ -490,6 +563,7 @@ const ProductPage = () => {
                       </option>
                     ))}
                   </select>
+                  {errors.divisionName && <p className="text-red-500 text-xs mt-1">{errors.divisionName}</p>}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -516,16 +590,30 @@ const ProductPage = () => {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Expiry Date
-                </label>
-                <input
-                  type="date"
-                  value={formData.expiryDate}
-                  onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Expiry Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.expiryDate}
+                    onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Batch Code
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.batchCode}
+                    onChange={(e) => setFormData({ ...formData, batchCode: e.target.value })}
+                    className="w-full px-4 py-3 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-gray-50/50 dark:bg-slate-800 dark:text-white transition-colors"
+                    placeholder="Auto-generated if empty"
+                  />
+                </div>
               </div>
               <div className="flex gap-3 pt-4">
                 <button
@@ -647,6 +735,35 @@ const ProductPage = () => {
                   className="w-full bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition-colors"
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {productToDelete && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60]">
+          <div className="bg-white dark:bg-[#151521] rounded-2xl p-6 w-full max-w-sm m-4 border dark:border-slate-800 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
+                <Trash2 className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Delete Product</h3>
+              <p className="text-gray-500 dark:text-slate-400 mb-6 text-sm">Are you sure you want to delete this product? This action cannot be undone.</p>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setProductToDelete(null)}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteProduct}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 shadow-lg shadow-red-500/30 transition-colors"
+                >
+                  Delete
                 </button>
               </div>
             </div>

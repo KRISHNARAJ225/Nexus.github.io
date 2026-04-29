@@ -147,11 +147,11 @@ const UserPage = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-8 bg-[#f4f7fe] dark:bg-[#1e1e2d] min-h-screen transition-colors duration-300">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-400">User Management</h1>
-          <p className="text-sm text-gray-400">View registered users and their details</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">User Management</h1>
+          <p className="text-sm text-gray-400 dark:text-slate-500">View registered users and their details</p>
         </div>
         <button
           onClick={() => setShowAddModal(true)}
@@ -163,19 +163,19 @@ const UserPage = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-50 flex items-center gap-4 hover:border-blue-200 transition-all group cursor-pointer">
-          <div className="p-3 bg-blue-50 rounded-xl group-hover:bg-blue-600 transition-colors">
+        <div className="bg-white dark:bg-[#151521] p-6 rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800 flex items-center gap-4 hover:border-blue-200 transition-all group cursor-pointer">
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl group-hover:bg-blue-600 transition-colors">
             <User className="w-6 h-6 text-blue-600 group-hover:text-white" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Total Users</p>
-            <h3 className="text-2xl font-bold text-slate-800">{registeredUsers?.length || 0}</h3>
+            <p className="text-xs font-semibold text-slate-400 dark:text-slate-500 mb-1 uppercase tracking-wider">Total Users</p>
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{registeredUsers?.length || 0}</h3>
           </div>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
-        <div className="p-6 border-b border-gray-50">
+      <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-sm border border-gray-50 dark:border-slate-800 overflow-hidden">
+        <div className="p-6 border-b border-gray-50 dark:border-slate-800">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -186,7 +186,7 @@ const UserPage = () => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-10 pr-4 py-2 bg-white border border-gray-200 text-gray-900 rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm shadow-sm"
+              className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg w-80 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm shadow-sm"
             />
           </div>
         </div>
@@ -194,12 +194,12 @@ const UserPage = () => {
         <TableContainer component={Paper} elevation={0} sx={{ background: 'transparent', border: 'none', borderRadius: 0 }}>
           <Table sx={{ minWidth: 650 }} aria-label="users table">
             <TableHead>
-              <TableRow sx={{ '& th': { borderBottom: '1px solid rgb(249, 250, 251)', py: 2, px: 3 } }}>
-                <TableCell sx={{ color: 'rgb(156, 163, 175)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>User Details</TableCell>
-                <TableCell sx={{ color: 'rgb(156, 163, 175)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Info</TableCell>
-                <TableCell align="center" sx={{ color: 'rgb(156, 163, 175)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Role</TableCell>
-                <TableCell sx={{ color: 'rgb(156, 163, 175)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Registered At</TableCell>
-                <TableCell align="right" sx={{ color: 'rgb(156, 163, 175)', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions</TableCell>
+              <TableRow sx={{ '& th': { borderBottom: '1px solid', borderColor: 'divider', py: 2, px: 3 } }}>
+                <TableCell sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>User Details</TableCell>
+                <TableCell sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Info</TableCell>
+                <TableCell align="center" sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Role</TableCell>
+                <TableCell sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Registered At</TableCell>
+                <TableCell align="right" sx={{ color: 'text.secondary', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -217,33 +217,33 @@ const UserPage = () => {
                 >
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm uppercase">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm uppercase">
                         {(user.name || user.username || 'U').charAt(0)}
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-bold text-gray-900">{user.name || user.username}</span>
-                        <span className="text-xs text-gray-400">@{user.username || 'n/a'}</span>
+                        <span className="font-bold text-gray-900 dark:text-white">{user.name || user.username}</span>
+                        <span className="text-xs text-gray-400 dark:text-slate-500">@{user.username || 'n/a'}</span>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-slate-400">
                         <Mail className="w-3.5 h-3.5 text-gray-400" />
                         <span>{user.email}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-gray-600 dark:text-slate-400">
                         <Phone className="w-3.5 h-3.5 text-gray-400" />
                         <span>{user.phone || 'N/A'}</span>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell align="center">
-                    <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-widest border border-blue-100">
+                    <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-bold uppercase tracking-widest border border-blue-100 dark:border-blue-900/40">
                       {user.role || 'user'}
                     </span>
                   </TableCell>
-                  <TableCell className="text-gray-500 font-medium">
+                  <TableCell sx={{ color: 'text.secondary' }}>
                     {user.registeredAt ? new Date(user.registeredAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A'}
                   </TableCell>
                   <TableCell align="right">
@@ -251,7 +251,7 @@ const UserPage = () => {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); openViewModal(user); }}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all cursor-pointer"
                         title="View"
                       >
                         <Eye className="w-4 h-4" />
@@ -259,7 +259,7 @@ const UserPage = () => {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); openViewModal(user); setTimeout(() => setIsEditing(true), 100); }}
-                        className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                        className="p-2 text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all cursor-pointer"
                         title="Edit"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -267,7 +267,7 @@ const UserPage = () => {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); openViewModal(user); setTimeout(() => setShowDeleteConfirm(true), 100); }}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                        className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all cursor-pointer"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -294,11 +294,10 @@ const UserPage = () => {
         />
       </div>
 
-      {/* ─── User Profile Modal with Edit/Delete ─── */}
       {viewingUser && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closeModal}>
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+            className="bg-white dark:bg-[#151521] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100 dark:border-slate-800"
             style={{ animation: 'modalSlideIn 0.3s ease' }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -336,7 +335,7 @@ const UserPage = () => {
 
             {/* Success Message */}
             {successMsg && (
-              <div className="mx-6 mt-4 flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm font-medium" style={{ animation: 'modalSlideIn 0.2s ease' }}>
+              <div className="mx-6 mt-4 flex items-center gap-2 px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl text-emerald-700 dark:text-emerald-400 text-sm font-medium" style={{ animation: 'modalSlideIn 0.2s ease' }}>
                 <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                 {successMsg}
               </div>
@@ -344,14 +343,14 @@ const UserPage = () => {
 
             {/* Delete Confirmation */}
             {showDeleteConfirm && (
-              <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-xl" style={{ animation: 'modalSlideIn 0.2s ease' }}>
+              <div className="mx-6 mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/40 rounded-xl" style={{ animation: 'modalSlideIn 0.2s ease' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="p-2 bg-red-100 rounded-full">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                    <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-red-900 text-sm">Delete this user?</h4>
-                    <p className="text-red-600 text-xs">This action cannot be undone.</p>
+                    <h4 className="font-bold text-red-900 dark:text-red-200 text-sm">Delete this user?</h4>
+                    <p className="text-red-600 dark:text-red-400 text-xs">This action cannot be undone.</p>
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -364,7 +363,7 @@ const UserPage = () => {
                   </button>
                   <button
                     onClick={() => setShowDeleteConfirm(false)}
-                    className="flex-1 py-2 bg-white hover:bg-gray-50 text-gray-700 font-bold text-sm rounded-lg transition-colors border border-gray-200"
+                    className="flex-1 py-2 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 font-bold text-sm rounded-lg transition-colors border border-gray-200 dark:border-slate-700 cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -387,15 +386,15 @@ const UserPage = () => {
                     },
                   ].map(({ icon: Icon, label, value, isBadge }) => (
                     <div key={label} className="flex items-center gap-4 group">
-                      <div className="p-2.5 bg-slate-50 rounded-lg text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                      <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-400 dark:text-slate-500 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         <Icon className="w-5 h-5" />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{label}</label>
+                        <label className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-0.5">{label}</label>
                         {isBadge ? (
-                          <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100">{value}</span>
+                          <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40">{value}</span>
                         ) : (
-                          <p className="text-slate-700 font-medium">{value}</p>
+                          <p className="text-slate-700 dark:text-slate-300 font-medium">{value}</p>
                         )}
                       </div>
                     </div>
@@ -411,7 +410,7 @@ const UserPage = () => {
                     { key: 'phone', label: 'Phone Number', type: 'tel', icon: Phone, required: false },
                   ].map(({ key, label, type, icon: Icon, required }) => (
                     <div key={key} className="space-y-1.5">
-                      <label className="text-xs font-bold text-gray-600 ml-1 flex items-center gap-1.5">
+                      <label className="text-xs font-bold text-gray-600 dark:text-slate-400 ml-1 flex items-center gap-1.5">
                         <Icon className="w-3.5 h-3.5 text-gray-400" />
                         {label}
                         {required && <span className="text-red-400">*</span>}
@@ -420,7 +419,7 @@ const UserPage = () => {
                         type={type}
                         value={editForm[key]}
                         onChange={(e) => setEditForm(prev => ({ ...prev, [key]: e.target.value }))}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all text-sm font-medium text-gray-800"
+                        className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white dark:focus:bg-slate-700 transition-all text-sm font-medium text-gray-800 dark:text-white"
                         placeholder={`Enter ${label.toLowerCase()}`}
                         required={required}
                       />
@@ -429,14 +428,14 @@ const UserPage = () => {
 
                   {/* Role Selector */}
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-600 ml-1 flex items-center gap-1.5">
+                    <label className="text-xs font-bold text-gray-600 dark:text-slate-400 ml-1 flex items-center gap-1.5">
                       <Shield className="w-3.5 h-3.5 text-gray-400" />
                       Role
                     </label>
                     <select
                       value={editForm.role}
                       onChange={(e) => setEditForm(prev => ({ ...prev, role: e.target.value }))}
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white transition-all text-sm font-medium text-gray-800"
+                      className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 focus:bg-white dark:focus:bg-slate-700 transition-all text-sm font-medium text-gray-800 dark:text-white"
                     >
                       <option value="user">User</option>
                       <option value="admin">Admin</option>
@@ -466,7 +465,7 @@ const UserPage = () => {
                     </button>
                     <button
                       onClick={closeModal}
-                      className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition-all active:scale-95 text-sm"
+                      className="py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl transition-all active:scale-95 text-sm cursor-pointer"
                     >
                       Close
                     </button>
@@ -486,7 +485,7 @@ const UserPage = () => {
                     <button
                       type="button"
                       onClick={handleCancelEdit}
-                      className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition-all active:scale-95 text-sm"
+                      className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-xl transition-all active:scale-95 text-sm cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -501,7 +500,7 @@ const UserPage = () => {
       {/* Add User Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all" style={{ animation: 'modalSlideIn 0.3s ease' }}>
+          <div className="bg-white dark:bg-[#151521] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-gray-100 dark:border-slate-800" style={{ animation: 'modalSlideIn 0.3s ease' }}>
             <div className="p-6 border-b border-gray-100 bg-black flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-50 rounded-xl">
@@ -511,71 +510,71 @@ const UserPage = () => {
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+                className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4 bg-white">
+            <div className="p-6 space-y-4 bg-white dark:bg-[#151521]">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-600 ml-1">Full Name *</label>
+                  <label className="text-xs font-bold text-gray-600 dark:text-slate-400 ml-1">Full Name *</label>
                   <input
                     type="text"
                     value={addForm.name}
                     onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium dark:text-white"
                     placeholder="John Doe"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-600 ml-1">Username *</label>
+                  <label className="text-xs font-bold text-gray-600 dark:text-slate-400 ml-1">Username *</label>
                   <input
                     type="text"
                     value={addForm.username}
                     onChange={(e) => setAddForm({ ...addForm, username: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium dark:text-white"
                     placeholder="johndoe"
                   />
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-600 ml-1">Email Address *</label>
+                <label className="text-xs font-bold text-gray-600 dark:text-slate-400 ml-1">Email Address *</label>
                 <input
                   type="email"
                   value={addForm.email}
                   onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium dark:text-white"
                   placeholder="john@example.com"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-600 ml-1">Password *</label>
+                <label className="text-xs font-bold text-gray-600 dark:text-slate-400 ml-1">Password *</label>
                 <input
                   type="password"
                   value={addForm.password}
                   onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium dark:text-white"
                   placeholder="••••••••"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-600 ml-1">Phone</label>
+                  <label className="text-xs font-bold text-gray-600 dark:text-slate-400 ml-1">Phone</label>
                   <input
                     type="tel"
                     value={addForm.phone}
                     onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium dark:text-white"
                     placeholder="+1 234..."
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-600 ml-1">Role</label>
+                  <label className="text-xs font-bold text-gray-600 dark:text-slate-400 ml-1">Role</label>
                   <select
                     value={addForm.role}
                     onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium"
+                    className="w-full px-4 py-2.5 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 text-sm font-medium dark:text-white"
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -591,9 +590,9 @@ const UserPage = () => {
                 >
                   {addLoading ? 'Registering...' : 'Add User'}
                 </button>
-                <button
+                 <button
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition-all font-bold text-sm transform active:scale-[0.98]"
+                  className="flex-1 bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-slate-300 py-3 rounded-xl hover:bg-gray-200 dark:hover:bg-slate-700 transition-all font-bold text-sm transform active:scale-[0.98] cursor-pointer"
                 >
                   Cancel
                 </button>
