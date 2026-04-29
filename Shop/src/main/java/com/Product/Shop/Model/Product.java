@@ -32,6 +32,8 @@ public class Product{
      private int nonSaleableStock;
      private String sku;
      private String uom;
+     private String batchCode;
+     private double discountPercentage;
      private boolean deleted=false;
 
 

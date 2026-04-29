@@ -28,4 +28,6 @@ public class ProductRequestDto {
     private String uom;
     @NotBlank(message = "Division name is required")
     private String divisionName;
+    private String batchCode;
+    private double discountPercentage;
 }

@@ -12,4 +12,6 @@ public class ProductResponseDto {
     private int quantity;
     private LocalDate expiryDate;
     private String divisionName;
+    private String batchCode;
+    private double discountPercentage;
 }

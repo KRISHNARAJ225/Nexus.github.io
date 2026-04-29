@@ -7,4 +7,6 @@ import lombok.Data;
 public class DivisionRequestDto {
     @NotBlank(message = "Name is required")
     private String name;
+
+    private String batchCode;
 }

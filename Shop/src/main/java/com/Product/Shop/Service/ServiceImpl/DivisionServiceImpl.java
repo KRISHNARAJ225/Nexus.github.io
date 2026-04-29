@@ -36,6 +36,14 @@ public class DivisionServiceImpl implements DivisionService {
     public DivisionResponseDto save(DivisionRequestDto division) {
         Division d = new Division();
         d.setName(division.getName());
+        
+        // Auto-generate batch code if not provided
+        String batchCode = division.getBatchCode();
+        if (batchCode == null || batchCode.trim().isEmpty()) {
+            batchCode = "DIV-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        }
+        d.setBatchCode(batchCode);
+        
         return mapToDto(repository.save(d));
     }
 
@@ -43,6 +51,17 @@ public class DivisionServiceImpl implements DivisionService {
     public DivisionResponseDto update(Long id, DivisionRequestDto division) {
         Division existing = repository.findById(id).orElseThrow(() -> new RuntimeException("Division Not Found"));
         existing.setName(division.getName());
+        
+        String batchCode = division.getBatchCode();
+        if (batchCode == null || batchCode.trim().isEmpty()) {
+            if (existing.getBatchCode() == null || existing.getBatchCode().trim().isEmpty()) {
+                batchCode = "DIV-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            } else {
+                batchCode = existing.getBatchCode();
+            }
+        }
+        existing.setBatchCode(batchCode);
+        
         return mapToDto(repository.save(existing));
     }
 
@@ -57,6 +76,7 @@ public class DivisionServiceImpl implements DivisionService {
         DivisionResponseDto dto = new DivisionResponseDto();
         dto.setId(division.getId());
         dto.setName(division.getName());
+        dto.setBatchCode(division.getBatchCode());
         return dto;
     }
 }

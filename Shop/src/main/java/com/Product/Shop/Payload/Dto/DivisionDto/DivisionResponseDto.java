@@ -9,4 +9,6 @@ public class DivisionResponseDto {
 
     private String name;
 
+    private String batchCode;
+
 }

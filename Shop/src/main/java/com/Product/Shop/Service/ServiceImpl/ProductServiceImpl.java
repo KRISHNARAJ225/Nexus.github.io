@@ -58,6 +58,8 @@ public class ProductServiceImpl implements ProductService {
         p.setNonSaleableStock(dto.getNonSaleableStock());
         p.setDivision(division);
         p.setDivisionName(division.getName());
+        p.setBatchCode(dto.getBatchCode() != null ? dto.getBatchCode() : division.getBatchCode());
+        p.setDiscountPercentage(dto.getDiscountPercentage());
 
         return mapToDto(repository.save(p));
     }
@@ -82,6 +84,8 @@ public class ProductServiceImpl implements ProductService {
         p.setNonSaleableStock(dto.getNonSaleableStock());
         p.setDivision(division);
         p.setDivisionName(divisionName);
+        p.setBatchCode(dto.getBatchCode() != null ? dto.getBatchCode() : division.getBatchCode());
+        p.setDiscountPercentage(dto.getDiscountPercentage());
 
         return mapToDto(repository.save(p));
     }
@@ -111,6 +115,8 @@ public class ProductServiceImpl implements ProductService {
         dto.setQuantity(product.getQuantity());
         dto.setExpiryDate(product.getExpiryDate());
         dto.setDivisionName(product.getDivision() != null ? product.getDivision().getName() : null);
+        dto.setBatchCode(product.getBatchCode());
+        dto.setDiscountPercentage(product.getDiscountPercentage());
         return dto;
     }
 }
